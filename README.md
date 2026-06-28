@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/golgi_logo.png" alt="golgi" width="420">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/golgi_logo_dark.gif">
+    <img src="docs/golgi_logo.gif" alt="golgi" width="480">
+  </picture>
 </p>
 
 <p align="center">
