@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "golgi"
+version = "1.0.0"
+description = "Anatomically realistic, reproducible image-to-population modeling of peripheral nerve stimulation."
+readme = "README.md"
+requires-python = ">=3.10"
+# PEP 639 SPDX license expression. golgi links Gmsh (GPLv2+) and TetGen
+# (AGPLv3, via the `tetgen` module) and serves a Trame network GUI, so the
+# whole work is AGPL-3.0-or-later. See THIRD_PARTY_LICENSES.md.
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
+authors = [
+    { name = "Yuting Jia" },
+    { name = "Max Haberbusch", email = "max.haberbusch@meduniwien.ac.at" },
+]
+# NOTE (PEP 639 / setuptools >= 77): the SPDX `license` expression above
+# supersedes the "License :: OSI Approved :: GNU Affero General Public
+# License v3 or later (AGPLv3+)" Trove classifier — the two must not be
+# combined, so the license classifier is intentionally omitted.
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+[project.urls]
+Homepage = "https://github.com/ORG/golgi"
+Repository = "https://github.com/ORG/golgi"
+
+[tool.setuptools]
+packages = ["golgi"]
+
+[tool.marimo.runtime]
+output_max_bytes = 1_000_000_000
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: end-to-end test requiring the FEniCSx solver stack + sample data (auto-skips when absent)",
+]

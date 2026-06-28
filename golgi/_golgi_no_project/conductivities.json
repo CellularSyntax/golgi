@@ -1,0 +1,8 @@
+{
+  "sigma_endo": 0.5,
+  "sigma_saline": 1.5,
+  "sigma_silicone": 1e-12,
+  "sigma_muscle": 0.27,
+  "sigma_epi": 0.083,
+  "sigma_contact": 41000000.0
+}
