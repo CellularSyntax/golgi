@@ -30,8 +30,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ORG/golgi"
-Repository = "https://github.com/ORG/golgi"
+Homepage = "https://github.com/CellularSyntax/golgi"
+Repository = "https://github.com/CellularSyntax/golgi"
 
 [tool.setuptools]
 packages = ["golgi"]
