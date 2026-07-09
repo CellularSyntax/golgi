@@ -32,6 +32,14 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/CellularSyntax/golgi"
 Repository = "https://github.com/CellularSyntax/golgi"
+Documentation = "https://github.com/CellularSyntax/golgi/wiki"
+Issues = "https://github.com/CellularSyntax/golgi/issues"
+
+# Console entry point. `golgi` with no subcommand launches the GUI server
+# (equivalent to `python -m golgi.app`); `golgi export|import|replay` run the
+# study-bundle CLI. Both dispatch through golgi.app:main().
+[project.scripts]
+golgi = "golgi.app:main"
 
 [tool.setuptools]
 packages = ["golgi"]
