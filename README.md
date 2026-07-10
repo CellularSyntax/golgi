@@ -103,6 +103,10 @@ rest of its dependencies then install with pip:
 # (a) conda environment with the compiled scientific core
 mamba create -n golgi -c conda-forge python=3.12 \
     fenics-dolfinx gmsh python-gmsh pyvista vtk meshio h5py
+
+# On Linux, if this fails due to channel conflicts, add --override-channels:
+# mamba create -n golgi -c conda-forge --override-channels python=3.12 fenics-dolfinx gmsh python-gmsh pyvista vtk meshio h5py
+
 mamba activate golgi
 
 # (b) golgi itself + all of its PyPI dependencies, from the repository root
