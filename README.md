@@ -100,9 +100,14 @@ golgi's compiled scientific core — **FEniCSx/DOLFINx** — is installed with c
 rest of its dependencies then install with pip:
 
 ```bash
-mamba create -n golgi -c conda-forge fenics-dolfinx python=3.12
+# (a) conda environment with the compiled scientific core
+mamba create -n golgi -c conda-forge python=3.12 \
+    fenics-dolfinx gmsh python-gmsh pyvista vtk meshio h5py
 mamba activate golgi
-pip install -e .              # golgi + its PyPI deps (GUI, meshing, visualization, analysis)
+
+# (b) golgi itself + all of its PyPI dependencies, from the repository root
+pip install -e .
+
 golgi fetch-tissue-db         # download the IT'IS tissue-properties database (see below)
 ```
 
