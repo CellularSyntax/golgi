@@ -45,7 +45,7 @@ from __future__ import annotations
 # (e.g. TRAME_WS_MAX_MSG_SIZE) — a very large scene is memory-heavy
 # on both server and browser, but the cap must not be the blocker.
 import os as _os
-_MAX_WS_BYTES = str(4 * 1024 * 1024 * 1024)
+_MAX_WS_BYTES = str(2**32 - 1 - 4096)
 _os.environ.setdefault("WSLINK_MAX_MSG_SIZE", _MAX_WS_BYTES)
 _os.environ.setdefault("TRAME_WS_MAX_MSG_SIZE", _MAX_WS_BYTES)
 
