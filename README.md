@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/interfaces-GUI%20%C2%B7%20API%20%C2%B7%20CLI-success" alt="GUI · API · CLI">
   <img src="https://img.shields.io/badge/solver-FEniCSx-orange" alt="FEniCSx">
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/platform-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-lightgrey" alt="Linux · macOS · Windows">
+  <img src="https://img.shields.io/badge/platform-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows%20(WSL2)-lightgrey" alt="Linux · macOS · Windows (WSL2)">
   <a href="https://github.com/CellularSyntax/golgi/wiki"><img src="https://img.shields.io/badge/docs-wiki-1f6feb" alt="Documentation: wiki"></a>
 </p>
 

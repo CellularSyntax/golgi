@@ -26,9 +26,11 @@ authors = [
 # combined, so the license classifier is intentionally omitted.
 classifiers = [
     "Programming Language :: Python :: 3",
+    # FEniCSx/PETSc (petsc4py) has no native-Windows conda-forge build, so the
+    # solver stack runs on Linux and macOS only; on Windows use WSL2 (see the
+    # Installation wiki). The OS::Windows classifier is intentionally omitted.
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
-    "Operating System :: Microsoft :: Windows",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
 ]
