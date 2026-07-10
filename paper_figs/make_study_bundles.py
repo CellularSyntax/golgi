@@ -146,8 +146,12 @@ SPECS = [
          mode="assemble", src=INTER / "bucksot", build=_assemble_bucksot),
     dict(id="fig05_swine_cervical_vagus", name="fig5 — swine cervical vagus selectivity",
          mode="assemble", src=INTER / "reseed_sub-4_sam-3", build=_assemble_flat_single),
+    # Built from the reseed_human_sub-50_sam-2 project (like swine fig5):
+    # the 1200-fibre population + contact-10 lead field that the fig6
+    # thresholds are computed on. (The old human_bundle_project source
+    # had a 576-fibre set that matched no threshold file.)
     dict(id="fig06_human_cervical_vagus", name="fig6 — human cervical vagus selectivity",
-         mode="direct", src=INTER / "human_bundle_project"),
+         mode="assemble", src=INTER / "reseed_human_sub-50_sam-2", build=_assemble_flat_single),
     dict(id="fig07_rabbit_branching", name="fig7 — rabbit branching vagus (cardiac branch)",
          mode="direct", src=INTER / "rabbit_gui_study"),
     dict(id="fig08_human_scb_branching", name="fig8 — human cervical vagus branch selectivity",
@@ -185,7 +189,11 @@ STORED_THR: dict[str, tuple[str, object]] = {
     "fig04c_bucksot_validation": (
         "_intermediate/bucksot/thr_circ.npz", "bucksot"),
     "fig05_swine_cervical_vagus": ("data/thr_pop_swine.npz", 0),
-    "fig06_human_cervical_vagus": ("data/thr_pop_human.npz", 0),
+    # Re-derived on the 1200-fibre reseed set (contact 10) with the
+    # current perineurium model — the published 1000-fibre human_sub-50
+    # generation is no longer on disk. See make_figures / the sweep in
+    # fig5_thresholds.py --pop cervical_vagus_human --contacts 10.
+    "fig06_human_cervical_vagus": ("data/thr_pop_human_reseed1200.npz", 0),
     "fig07_rabbit_branching": ("data/rabbit_branch_thr.npz", "best"),
     "fig08_human_scb_branching": ("data/new_human_tripole_thr.npz",
                                   "best"),
