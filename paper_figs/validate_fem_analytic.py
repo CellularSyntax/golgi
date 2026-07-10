@@ -24,7 +24,7 @@ import sys, json
 from pathlib import Path
 import numpy as np
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import DATA   # noqa: E402
 

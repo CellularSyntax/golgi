@@ -16,7 +16,7 @@ import pyvista as pv
 from PIL import Image
 
 pv.OFF_SCREEN = True
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 MSH = ROOT / "paper_figs/out/render_mesh/nerve_off15.msh"
 OUTD = ROOT / "paper_figs/out/figures/png"
 OUTD.mkdir(parents=True, exist_ok=True)

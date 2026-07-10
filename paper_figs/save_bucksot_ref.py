@@ -9,7 +9,7 @@ paper_figs/out/data/bucksot_reference.json for the fig_bucksot overlay.
 import json
 from pathlib import Path
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 OUT = ROOT / "paper_figs/out/data/bucksot_reference.json"
 
 CIRC = {

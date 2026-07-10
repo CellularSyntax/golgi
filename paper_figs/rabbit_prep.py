@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import meshio
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 NAS = ROOT / "data/Reduced_Reduced_Smoothed_Wrapped_mask_from_object 3_wrapped.nas"
 OUT = ROOT / "paper_figs/rabbit_out"
 OUT.mkdir(parents=True, exist_ok=True)

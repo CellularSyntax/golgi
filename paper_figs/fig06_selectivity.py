@@ -28,7 +28,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Polygon as MplPoly, Patch, Circle, Wedge
 from matplotlib.lines import Line2D
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig, DATA   # noqa: E402
 HI_UA = 10_000.0

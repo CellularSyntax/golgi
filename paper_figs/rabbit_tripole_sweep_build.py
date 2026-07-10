@@ -24,7 +24,7 @@ from pathlib import Path
 import json
 import numpy as np
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 DD = ROOT / "paper_figs/out/data"
 OUT = DD / "rabbit_tripole_sweep"
 

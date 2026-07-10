@@ -37,10 +37,7 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(
-    "/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/"
-    "Fenics_tests"
-)
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from golgi.projects import bundle as _bundle      # noqa: E402

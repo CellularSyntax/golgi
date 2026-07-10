@@ -9,7 +9,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 CSV = ROOT / "paper_figs/out/tables/cohort_table.csv"
 OUT = ROOT / "PLOS_latex_template/s1_table_body.tex"
 

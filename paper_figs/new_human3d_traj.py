@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 OUT = ROOT / "paper_figs/new_human3d_out"
 PREVIEW = ROOT / "paper_figs/out/_intermediate/new_human3d_traj_preview.png"
 

@@ -15,7 +15,7 @@ import sys, shutil
 from pathlib import Path
 import numpy as np
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 NAS = ROOT / "data/Reduced_Reduced_Smoothed_Wrapped_mask_from_object 3_wrapped.nas"
 PROJ = ROOT / "paper_figs/out/_intermediate/rabbit_project"

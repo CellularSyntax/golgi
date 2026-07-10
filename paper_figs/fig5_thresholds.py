@@ -23,7 +23,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 PULSE = dict(t0=0.1, tstop=3.0, cath_amp_mA=1.0, cath_pw_ms=0.1, gap_ms=0.0,

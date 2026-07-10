@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "scripts"))
 import golgi.scene.electrode_patches as ep  # noqa: E402
 from render_components import STYLE, CONTACT_COLOR  # noqa: E402

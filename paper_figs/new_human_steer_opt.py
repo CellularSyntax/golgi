@@ -25,7 +25,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.optimize import minimize
 from scipy.special import logsumexp
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 TAG = "off15_4x5"   # best position from the sweep (~20 mm from branch)
 D = ROOT / f"paper_figs/out/data/new_human_branch_{TAG}/paths_Ve.npz"
 OUTP = ROOT / "paper_figs/out/figures/png/new_human_steering.png"

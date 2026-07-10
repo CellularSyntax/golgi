@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 import numpy as np
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 HAND = ROOT / "comsol_handover"
 OUT = ROOT / "paper_figs/out/data/m1_golgi_Ve.npz"
 

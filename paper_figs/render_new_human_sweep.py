@@ -20,7 +20,7 @@ import numpy as np
 import pyvista as pv
 from PIL import Image
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import px_per_mm, write_ppmm   # noqa: E402
 

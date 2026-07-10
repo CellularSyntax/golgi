@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 from render_components import (_read_mm, _clip_capped, _sheath_prism, _slice_poly,  # noqa: E402
                                _offset_loop, EPS_MM, STYLE, FIBER_COLOR, CONTACT_COLOR)

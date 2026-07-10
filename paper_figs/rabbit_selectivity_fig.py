@@ -30,7 +30,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Circle, Wedge, Polygon as MplPoly
 from matplotlib.lines import Line2D
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "paper_figs"))
 from fig5_population import classify, UNMYEL, diam_panel, recruit_panel, ORDER, CLASS_COL   # noqa: E402
 from fig06_selectivity import panel_ap, panel_thrdiam                     # noqa: E402

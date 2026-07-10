@@ -29,7 +29,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "paper_figs"))
 from fig5_thresholds import _bp, PULSE                # noqa: E402
 from validate_nrv import recruit, rate, REF, PWS_MS   # noqa: E402  (reuse metrics machinery)

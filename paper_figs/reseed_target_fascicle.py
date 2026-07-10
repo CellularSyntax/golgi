@@ -21,7 +21,7 @@ import sys, shutil
 from pathlib import Path
 import numpy as np
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 
 
 def main():

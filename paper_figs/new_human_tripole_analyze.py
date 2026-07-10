@@ -13,7 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 THR = ROOT / "paper_figs/out/data/new_human_tripole_thr.npz"
 SRC = ROOT / "paper_figs/out/data/new_human_tripole/paths_Ve.npz"
 OUTP = ROOT / "paper_figs/out/figures/png/new_human_tripole_selectivity.png"

@@ -15,7 +15,7 @@ from PIL import Image
 import sys
 
 pv.OFF_SCREEN = True
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import TMP   # noqa: E402
 ND = ROOT / "results_golgi/duke_meshes/sub-4_sam-3"

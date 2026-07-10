@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "paper_figs"))
 from render_electrodes import _flat, EPI, SILICONE, GOLD, SIL  # noqa: E402
 from fig_bucksot import FCOLORS  # noqa: E402  (same per-fascicle palette as the recruitment curves)

@@ -12,7 +12,7 @@ out/
 import re
 from pathlib import Path
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 OUT = ROOT / "paper_figs/out"
 FIG_FORMATS = ("png", "pdf", "svg")
 FIG_DIRS = {e: OUT / "figures" / e for e in FIG_FORMATS}

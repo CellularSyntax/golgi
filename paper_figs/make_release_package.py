@@ -26,10 +26,7 @@ import shutil
 import zipfile
 from pathlib import Path
 
-ROOT = Path(
-    "/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/"
-    "Fenics_tests"
-)
+ROOT = Path(__file__).parent.parent
 REL = ROOT / "golgi_paper_package"
 # Methods paper (the version being submitted to PLOS Comp Biol).
 PLOS = ROOT / "PLOS_latex_template"

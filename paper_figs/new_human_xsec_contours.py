@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 NHM = ROOT / "data/new_human_meshes"
 EPI = NHM / "EPINERIUM_Epinerium_cleaned_aligned_masks_mm_SMOOTHED_LONGER_original_duplicate_duplicate_wrapped_duplicate.stl"
 ENDO = NHM / "ENDONERIUM_masks_ns_2w_processed_reduced_2w_reduced2.stl"   # full-res for clean lobes

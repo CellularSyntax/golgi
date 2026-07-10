@@ -20,7 +20,7 @@ from pathlib import Path
 import numpy as np
 import multiprocessing as mp
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "paper_figs"))
 from fig5_thresholds import _worker, _load           # noqa: E402
 from fig5_population import classify, UNMYEL          # noqa: E402

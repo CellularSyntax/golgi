@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 RO = ROOT / "paper_figs/rabbit_out"
 SURF = RO / "nerve_only_surface.npz"
 ORIGFIB = RO / "nerve_paths_fibers.npz"          # original-frame fibres (same pts as paths_Ve)

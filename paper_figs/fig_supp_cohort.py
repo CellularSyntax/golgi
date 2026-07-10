@@ -18,7 +18,7 @@ from matplotlib.patches import Polygon as MplPoly, Circle, Wedge
 from matplotlib.colors import LogNorm
 from matplotlib.cm import ScalarMappable
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig   # noqa: E402
 DUKE = ROOT / "results_golgi/duke_meshes"

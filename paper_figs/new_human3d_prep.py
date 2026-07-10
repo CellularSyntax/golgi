@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import meshio
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 STL = ROOT / "data/new_human_meshes/ENDO_dec80_fixed.stl"   # same endo the FEM mesh uses
 OUT = ROOT / "paper_figs/new_human3d_out"
 OUT.mkdir(parents=True, exist_ok=True)

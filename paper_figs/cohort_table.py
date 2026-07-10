@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from io_paths import TABLES, DATA
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 SRC = ROOT / "results_golgi/duke_meshes/BATCH_SUMMARY.txt"
 
 pat = re.compile(

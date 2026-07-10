@@ -3,8 +3,8 @@
 # cuff position. Sequential (each run uses all cores) -> clean config x position sweep.
 # Fixed 10 um (controlled spatial selectivity; matches the human fig8 sweep methodology).
 set -e
-PY=/opt/miniconda3/envs/fenicsx-nerve/bin/python
-ROOT="/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests"
+PY="${PY:-python3}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 SW="paper_figs/out/data/rabbit_tripole_sweep"
 for tag in off3_4x5 off4_4x5 off5_4x5 off6_4x5; do

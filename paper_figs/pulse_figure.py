@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from pathlib import Path
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__file__).parent.parent
 WARM, COOL, LINE, BASE = "#e8643c", "#2f8fb3", "#1a1a1a", "#cfcfcf"
 
 
