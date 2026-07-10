@@ -351,7 +351,7 @@ def render(
 
         # ----- Version footer -----
         html.Div(
-            "Version Alpha 2.4.1 · "
+            "Version 1.0.0 · "
             "Copyright 2026 Medical "
             "University of Vienna",
             classes="golgi-welcome-version",
