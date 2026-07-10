@@ -30,7 +30,7 @@
 point-and-click interface** — no programming required — and mirrors every step in a scriptable Python
 API and command-line interface for batch and high-performance use. It builds anatomically realistic,
 multifascicular nerve models and computes fiber-type-selective recruitment end to end, on a **fully
-open finite-element stack with no commercial dependencies** (no COMSOL).
+open finite-element stack with no commercial dependencies** (no COMSOL or Ansys).
 
 ## ✨ Highlights
 
