@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 24.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 48 48"
+   xml:space="preserve"
+   sodipodi:docname="External-link-icon-vector-06.svg"
+   width="48"
+   height="48"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   inkscape:export-filename="External-link-icon-vector-06.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs3" /><sodipodi:namedview
+   id="namedview3"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:zoom="2.4042969"
+   inkscape:cx="255.79204"
+   inkscape:cy="176.97482"
+   inkscape:window-width="3440"
+   inkscape:window-height="1440"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="Layer_1" />
+	<g
+   id="g3"
+   transform="scale(0.09374542,0.09375)">
+		<path
+   d="M 227.6,85.3 H 85.3 C 38.2,85.4 0,123.5 0,170.7 v 256 C 0,473.8 38.2,512 85.3,512 h 256 c 47.1,0 85.3,-38.2 85.3,-85.3 V 284.4 c 0,-15.7 -12.7,-28.4 -28.4,-28.4 -15.7,0 -28.4,12.7 -28.4,28.4 v 142.2 c 0,15.7 -12.8,28.4 -28.4,28.4 H 85.4 C 69.7,455 57,442.2 57,426.6 v -256 c 0,-15.7 12.8,-28.4 28.4,-28.4 h 142.2 c 15.7,0 28.4,-12.7 28.4,-28.4 0,-15.7 -12.7,-28.5 -28.4,-28.5 z"
+   id="path1" />
+		<path
+   d="M 219.2,333 503.7,48.6 c 11.1,-11.1 11.1,-29.1 0,-40.2 -11.1,-11.1 -29.1,-11.1 -40.2,0 L 179,292.8 c -11.1,11.1 -11.1,29.1 0,40.2 11.1,11.1 29.1,11.1 40.2,0"
+   id="path2" />
+		<path
+   d="m 341.3,56.9 h 113.8 v 113.8 c 0,15.7 12.7,28.4 28.4,28.4 15.7,0 28.4,-12.7 28.4,-28.4 V 28.5 c 0,-7.5 -3,-14.8 -8.3,-20.1 C 498.3,3.1 491,0 483.6,0 H 341.3 c -15.7,0 -28.4,12.7 -28.4,28.4 0,15.8 12.7,28.5 28.4,28.5 z"
+   id="path3" />
+	</g>
+</svg>

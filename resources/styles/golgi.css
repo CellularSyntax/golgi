@@ -1,0 +1,3747 @@
+/* Override Vuetify 3's primary theme colour from the default
+   blue to magma red #e24b4a (= rgb(226, 75, 74)). Vuetify reads
+   --v-theme-primary as a comma-separated RGB triplet and applies
+   it via rgb(var(--v-theme-primary)) wherever color="primary"
+   is set on a Vuetify component (VBtn, VSlider, VCheckbox, etc).
+   This recolours buttons, slider tracks/thumbs, checkbox ticks,
+   nav highlights, and any other primary-coloured element. */
+:root {
+    --v-theme-primary: 226, 75, 74;
+    --v-theme-on-primary: 255, 255, 255;
+}
+
+/* Three-tier overlay stack:
+ *   9999  → all Vuetify dialogs / menus / tooltips
+ *  10000  → .golgi-overlay (busy lightbox)
+ *  10001  → Vuetify dialogs tagged .golgi-dialog-above-busy
+ *           (e.g. the cancel-confirm dialog opened FROM inside
+ *           the busy lightbox)
+ *
+ * Without the 10000 bump, the import-stepper / project-detail
+ * VDialogs sit on top of the busy lightbox because Vuetify
+ * teleports overlays into `.v-overlay-container` AFTER our
+ * `.golgi-overlay` in DOM order — so equal z-index 9999 lets
+ * the later DOM node win. !important is the only reliable
+ * lever because Vuetify applies its z-index inline via the
+ * useStack composable. */
+.v-overlay-container .v-overlay,
+.v-overlay-container .v-overlay__scrim,
+.v-overlay-container .v-overlay__content {
+    z-index: 9999 !important;
+}
+
+/* F3.2-M3 — Import-nerve stepper docked to the LEFT edge of the
+ * viewport. Vuetify centers VDialog content by default; we
+ * override the flex-centering on the overlay container so the
+ * dialog hugs the left side, leaving the main 3D viewport
+ * visible to the right. The user sees the live scene update as
+ * they walk through Load nerve → Endoneurium → Fibers → Muscle.
+ *
+ * `pointer-events: none` on the overlay-content wrapper +
+ * `pointer-events: auto` on the dialog itself: clicks pass
+ * through the empty right half to the viewport (orbit / zoom /
+ * pick-electrode work even with the wizard open). */
+.v-overlay-container
+    .v-overlay:has(> .v-overlay__content.golgi-stepper-dialog) {
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    pointer-events: none !important;
+}
+/* The scrim is a sibling of `.v-overlay__content` inside the
+ * `.v-overlay`. Even with `pointer-events: none` on the parent,
+ * Vuetify can re-enable pointer events on the scrim element via
+ * its own inline styles or class rules, which would silently
+ * eat clicks meant for the viewport. Force it off explicitly so
+ * orbit / zoom / pick-electrode keep working under the dialog. */
+.v-overlay-container
+    .v-overlay:has(> .v-overlay__content.golgi-stepper-dialog)
+    .v-overlay__scrim {
+    pointer-events: none !important;
+}
+.v-overlay-container
+    .v-overlay__content.golgi-stepper-dialog {
+    margin: 80px 0 0 16px !important;
+    max-height: calc(100vh - 96px) !important;
+    pointer-events: auto !important;
+    /* Soft shadow so the wizard reads as a floating card over
+     * the live viewport, not as a flat overlay. */
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.18),
+        0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    border-radius: 8px !important;
+}
+
+/* Pop the cancel-confirm (and any other "above busy" tagged
+ * dialog) above the busy lightbox so the user can still see /
+ * click it. Vuetify applies class_= on a VDialog to the
+ * .v-overlay__content node; we also lift the matching scrim
+ * by sibling selector so the dim backdrop sits between the
+ * busy lightbox and the popped dialog instead of behind both. */
+.v-overlay-container
+    .v-overlay__content.golgi-dialog-above-busy,
+.v-overlay-container
+    .v-overlay:has(> .v-overlay__content.golgi-dialog-above-busy),
+.v-overlay-container
+    .v-overlay__scrim:has(
+        + .v-overlay__content.golgi-dialog-above-busy
+    ) {
+    z-index: 10001 !important;
+}
+
+/* Backdrop scrim — lightbox feel: dim the page so the card pops.
+ * Mounted as a direct child of VAppLayout (sibling to VMain) so
+ * it isn't trapped inside the central area's flex column or the
+ * analysis-area's overflow:auto scroll context — both of which
+ * could otherwise truncate the dimmer in the Single fiber tab.
+ * inset:0 + 100dvw/dvh keeps the scrim flush to the visual
+ * viewport even when a mobile browser's address bar resizes it.
+ * z-index 9999 keeps it above the welcome view (10) and the
+ * workspace shell; Vuetify dialogs are pinned above via the
+ * !important rule at the top of this file. */
+.golgi-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100dvw;
+    height: 100dvh;
+    background: rgba(20, 22, 28, 0.45);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    /* See the three-tier overlay-stack comment at the top of
+     * this file: 10000 keeps the busy lightbox above every
+     * Vuetify dialog (pinned to 9999) except those tagged
+     * .golgi-dialog-above-busy (pushed to 10001). */
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+}
+
+/* The centred lightbox card. Flex column so loader + text stack
+   vertically and both auto-centre on the card's horizontal axis. */
+.golgi-lightbox {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 56px 72px 44px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.30),
+                0  4px 12px rgba(0, 0, 0, 0.10);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Wave-loader spinner. Black wave on white background, then an
+   SVG feColorMatrix filter (#loader-recolor, injected by
+   loader_variants.js) recolours black → magma red. Variants
+   v1-v5 swap the animation; loader_variants.js cycles them. */
+.loader {
+    display: inline-grid;
+    padding: 5px;
+    background: #fff;
+    filter: blur(4px) contrast(12) url(#loader-recolor);
+}
+.loader::before,
+.loader::after {
+    content: "";
+    grid-area: 1/1;
+    height: 40px;
+    aspect-ratio: 3;
+    --c: #0000 64%, #000 66% 98%, #0000 101%;
+    background:
+        radial-gradient(35% 146% at 50% 159%, var(--c)) 0 0,
+        radial-gradient(35% 146% at 50% -59%, var(--c)) 100% 100%;
+    background-size: calc(200%/3) 50%;
+    background-repeat: repeat-x;
+}
+
+/* v1 — masked sweep */
+.loader.v1::before {
+    -webkit-mask: repeating-linear-gradient(90deg, #000 0 8%, #0000 0 15%);
+            mask: repeating-linear-gradient(90deg, #000 0 8%, #0000 0 15%);
+}
+.loader.v1::after {
+    clip-path: inset(0 100% 0 0);
+    animation: l13 1.5s infinite linear;
+}
+@keyframes l13 {
+    50% { clip-path: inset(0); }
+    to  { clip-path: inset(0 0 0 100%); }
+}
+
+/* v2 — symmetric reveal */
+.loader.v2::before,
+.loader.v2::after {
+    clip-path: inset(0 100% 0 0);
+    -webkit-mask: repeating-linear-gradient(90deg, #000 0 10%, #0000 0 20%);
+            mask: repeating-linear-gradient(90deg, #000 0 10%, #0000 0 20%);
+    animation: l14 1.5s infinite linear;
+}
+.loader.v2::after { scale: -1; }
+@keyframes l14 {
+    40%, 60% { clip-path: inset(0); }
+    to       { clip-path: inset(0 0 0 100%); }
+}
+
+/* v3 — mirrored bars */
+.loader.v3::before,
+.loader.v3::after {
+    clip-path: inset(0 100% 0 0);
+    animation: l15 1.5s infinite linear;
+}
+.loader.v3::after { scale: -1 1; }
+@keyframes l15 {
+    50% { clip-path: inset(0); }
+    to  { clip-path: inset(0 0 0 100%); }
+}
+
+/* v4 — offset bars */
+.loader.v4::before,
+.loader.v4::after {
+    clip-path: inset(0 100% 0 0);
+    animation: l16 1.5s infinite linear;
+}
+.loader.v4::after {
+    scale: -1 1;
+    animation-delay: -0.75s;
+}
+@keyframes l16 {
+    50% { clip-path: inset(0); }
+    to  { clip-path: inset(0 0 0 100%); }
+}
+
+/* v5 — sliding dots (single layer) */
+.loader.v5::before {
+    -webkit-mask: repeating-linear-gradient(90deg, #000 0 10%, #0000 0 20%);
+            mask: repeating-linear-gradient(90deg, #000 0 10%, #0000 0 20%);
+    animation: l11 .8s infinite linear;
+}
+.loader.v5::after { display: none; }
+@keyframes l11 {
+    to { background-position: -200% 0, -100% 100%; }
+}
+
+/* Status label — thin, centred horizontally with the loader. */
+.golgi-loader-text {
+    margin-top: 28px;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: #2a2c33;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+}
+
+/* Live log panel inside the lightbox — only visible when a long
+   subprocess (e.g. fiber generation) is streaming output. */
+.golgi-lightbox-log {
+    margin-top: 18px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #4a4a52;
+    background: #f6f6f8;
+    border: 1px solid #e3e3e6;
+    border-radius: 6px;
+    padding: 10px 14px;
+    width: 540px;
+    max-width: 80vw;
+    /* Bumped 240→340 px so 12-15 lines of accumulated busy_log
+     * are visible during long pipeline stages (µCT refine,
+     * TetGen, FEM solve). overflow:auto adds a scrollbar when
+     * the cap is exceeded, but the action layer also tail-
+     * truncates to keep the most recent N lines so the user
+     * always sees the current frontier without scrolling. */
+    max-height: 340px;
+    overflow: auto;
+    white-space: pre;
+    text-align: left;
+}
+
+/* ----- Unified button system -----------------------------------
+ * Two button styles used everywhere in the app:
+ *
+ *   .golgi-btn-primary   solid red pill (primary actions)
+ *   .golgi-btn-secondary outlined pill (cancel / dismiss / links)
+ *
+ * Modifiers:
+ *   .golgi-btn-block     fills container width (drawer primary CTAs)
+ *   .golgi-btn-sm        smaller padding + font (inline secondary)
+ *
+ * Welcome view + lightbox cancel use these same classes through
+ * the aliases at the bottom of this block. -------------------- */
+.golgi-btn-primary,
+.golgi-btn-primary:link,
+.golgi-btn-primary:visited {
+    background: #e24b4a;
+    color: #ffffff !important;
+    border: 1px solid transparent;
+    border-radius: 28px;
+    padding: 10px 30px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease,
+                box-shadow 0.15s ease;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(226, 75, 74, 0.22);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+}
+.golgi-btn-primary:hover {
+    background: #d23e3d;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(226, 75, 74, 0.32);
+}
+.golgi-btn-primary:active {
+    transform: translateY(1px);
+}
+.golgi-btn-primary:disabled,
+.golgi-btn-primary[disabled] {
+    /* Override any inline background colour the call site
+       picks (the µCT dialog buttons use inline `background:
+       #1976d2` etc.). `!important` + opacity is the only way
+       to get a consistent greyed-out look without auditing
+       every call site. `cursor: default` swaps the OS-level
+       "lock / not-allowed" symbol for the normal pointer
+       so the button just reads as inert. */
+    background: #d4d4d8 !important;
+    color: #888 !important;
+    border-color: #d4d4d8 !important;
+    cursor: default;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+.golgi-btn-secondary,
+.golgi-btn-secondary:link,
+.golgi-btn-secondary:visited {
+    background: transparent;
+    color: #1f2024 !important;
+    border: 1px solid #d4d4d8;
+    border-radius: 28px;
+    padding: 9px 25px;       /* 1 px less than primary to offset border */
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease,
+                color 0.12s ease, transform 0.1s ease;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+}
+.golgi-btn-secondary:hover {
+    background: #fff5f5;
+    color: #e24b4a !important;
+    border-color: #e24b4a;
+}
+.golgi-btn-secondary:active {
+    transform: translateY(1px);
+}
+.golgi-btn-secondary:disabled,
+.golgi-btn-secondary[disabled] {
+    /* Same logic as the primary disabled style — !important
+       to override inline tints from call sites, opacity for
+       the greyed look, `cursor: default` to drop the lock-
+       icon hover. */
+    color: #888 !important;
+    border-color: #ececef !important;
+    background: #f5f5f5 !important;
+    cursor: default;
+    opacity: 0.6;
+}
+
+/* Modifiers */
+.golgi-btn-block {
+    width: 100%;
+}
+.golgi-btn-sm {
+    padding: 6px 18px;
+    font-size: 13px;
+    border-radius: 18px;
+}
+.golgi-btn-secondary.golgi-btn-sm {
+    padding: 5px 17px;
+}
+
+/* Round-icon modifier — square aspect, fully rounded, no
+ * horizontal padding. Designed for single-glyph buttons like the
+ * navbar's project-close X. Pairs naturally with .golgi-btn-sm
+ * for a smaller circle. */
+.golgi-btn-round {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+.golgi-btn-round.golgi-btn-sm {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+}
+
+/* Cancel button row inside the busy lightbox. */
+.golgi-lightbox-actions {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Floating visibility legend — collapsible chips panel anchored
+   in the top-right corner, sitting just below the eye-icon FAB.
+   Hidden by default (legend_visible = False); the FAB above flips
+   it open. Each row = colour swatch + label, and the whole row is
+   a clickable toggle bound to vis_<tag>. */
+.golgi-legend {
+    position: absolute;
+    top: 64px;
+    right: 16px;
+    z-index: 25;
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: 1px solid #e3e3e6;
+    border-radius: 8px;
+    padding: 6px 4px 6px 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    pointer-events: all;
+    font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+    min-width: 150px;
+}
+.golgi-legend-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 120ms ease;
+}
+.golgi-legend-row:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+.golgi-legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-right: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.golgi-legend-label {
+    flex-grow: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1f2024;
+    letter-spacing: 0.01em;
+}
+.golgi-legend-row.is-off .golgi-legend-label {
+    color: #a0a0a4;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+.golgi-legend-row.is-off .golgi-legend-swatch {
+    opacity: 0.30;
+}
+/* Indented per-branch fiber rows under the Trajectories master. */
+.golgi-legend-row.golgi-legend-sub {
+    padding-left: 24px;
+    font-size: 11px;
+}
+.golgi-legend-row.golgi-legend-sub .golgi-legend-swatch {
+    width: 10px;
+    height: 10px;
+    margin-right: 7px;
+}
+/* F3.2-M1: per-design sub-section label (Tissues / Electrode /
+   Fibers / Overlays) inside the hierarchical legend tree. Non-
+   interactive — just a quiet typographic marker between the
+   master-design row and the indented per-component sub-rows. */
+.golgi-legend-subhdr {
+    padding: 6px 0 2px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    font-weight: 600;
+}
+/* F3.2-M2.0.1 (revised M2.0.2): design-picker combobox at the
+   top of the legend panel. The picker selects which design's
+   full visibility tree is shown below (Tissues / Electrode /
+   Fibers / Overlays sub-sections); a small eye-toggle next to
+   the combobox flips the focused design's vis_master. Layout
+   as a flex row so the combobox takes the remaining width and
+   the eye button hugs the right edge. */
+.golgi-legend-picker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 6px 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.golgi-legend-design-select {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.golgi-legend-design-select .v-field {
+    font-size: 12px;
+}
+.golgi-legend-master-toggle {
+    flex: 0 0 auto;
+}
+/* Section header used to group the legend rows (Tissues /
+   Electrodes / Fibers / Overlays). Distinguishes structure
+   visibility from field-derived overlay modifiers so the user
+   can scan the panel as labelled categories. Multiple headers
+   are now present in the panel so we drop the border-top divider
+   (would look noisy stacked) and rely on margin + uppercase font
+   styling alone to mark the section break. */
+.golgi-legend-header {
+    margin-top: 10px;
+    padding: 4px 0 2px 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    font-weight: 600;
+}
+.golgi-legend-header:first-child {
+    margin-top: 2px;
+}
+/* Click-to-collapse variant — adds a small chevron glyph in
+ * front of the section label and a hover cue so the row reads
+ * as interactive. Each clickable header toggles a per-section
+ * `legend_<name>_open` state var; the rows ANDing that flag
+ * into their v_show fold/unfold in step. */
+.golgi-legend-header-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
+    border-radius: 4px;
+    transition: background 120ms ease;
+}
+.golgi-legend-header-toggle:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+.golgi-legend-chevron {
+    display: inline-block;
+    width: 10px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 9px;
+    line-height: 1;
+}
+
+/* Phase 6b — top-right viewport overlay row. Hosts the design-
+ * picker combobox (left) and the eye-icon FAB (right). Sits at
+ * a fixed top-right anchor; the legend popup is a separate
+ * absolutely-positioned panel that drops in below the FAB.
+ * Flex layout keeps the combobox + FAB inline regardless of
+ * which is hidden (combobox is gated on has_geometry; FAB is
+ * always visible in workspace mode). */
+.golgi-legend-toprow {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 26;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Combobox wrapper for the design picker. Width is bounded so a
+ * long design name doesn't push the FAB off-screen. */
+.golgi-legend-design-outer {
+    min-width: 180px;
+    max-width: 260px;
+}
+
+/* Eye-icon FAB that toggles the legend panel below. Inside the
+ * top-row flex container so the combobox + FAB stay aligned;
+ * panel positioning is owned by .golgi-legend. */
+.golgi-legend-fab.v-btn {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #1f2024 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+.golgi-legend-fab.v-btn:hover {
+    background: rgba(255, 255, 255, 1) !important;
+}
+
+/* Phase 6b — supersection header for the restructured legend.
+ * Bold-ish weight, indented chevron, click target for fold
+ * toggle. Same look as the legacy `.golgi-legend-subhdr` but
+ * with the chevron baked in. */
+.golgi-legend-supheader {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 8px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1f2024;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    user-select: none;
+}
+.golgi-legend-supheader:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* Viewport-mode swap. In 3D mode the pyvista plotter fills the
+   central area; in analysis mode it becomes a fixed-height
+   top panel (~52vh) and the analysis area scrolls below it.
+   Both modes use flex layout so pyvista's renderer adapts to
+   the parent height automatically. */
+.golgi-central {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    /* Establish a positioned containing block so the
+     * absolute-positioned viewport in mode-fiber-band /
+     * mode-pop-band sizes itself relative to THIS element
+     * (not an outer ancestor). Without `position: relative`
+     * here the `left/right` insets on the band-mode viewports
+     * resolve against a different containing block than the
+     * analysis-panel below, which produced the "viewport
+     * narrower than panel on first open" desync the user was
+     * hitting in the Population tab. */
+    position: relative;
+}
+.golgi-viewport {
+    position: relative;
+    width: 100%;
+    order: 0;            /* always render first (top) in flex column */
+    transition: height 280ms ease;
+    overflow: hidden;
+    background: white;
+}
+.golgi-viewport.mode-full {
+    flex: 1 1 auto;
+    height: auto;
+}
+.golgi-viewport.mode-panel {
+    flex: 0 0 52vh;
+    height: 52vh;
+    border-bottom: 1px solid #e3e3e6;
+}
+.golgi-analysis-area {
+    flex: 1 1 auto;
+    order: 1;            /* always after the viewport */
+    overflow: auto;
+    padding: 28px 32px;
+    background: #fafafa;
+    min-height: 0;
+}
+.golgi-analysis-panel {
+    background: #ffffff;
+    border: 1px solid #e3e3e6;
+    border-radius: 10px;
+    padding: 22px 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 18px;
+    font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+}
+.golgi-analysis-panel h2 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2024;
+    letter-spacing: 0.01em;
+}
+.golgi-analysis-panel .subtitle {
+    color: #777;
+    font-size: 12px;
+    margin-bottom: 16px;
+}
+.golgi-analysis-panel .placeholder {
+    color: #999;
+    font-size: 13px;
+    font-style: italic;
+    padding: 24px 0;
+    text-align: center;
+    border: 2px dashed #e3e3e6;
+    border-radius: 6px;
+}
+/* Branch summary table — renders inside the Fiber Trajectories
+ * drawer once trajectories have been generated. Replaces the
+ * legacy v_html "Trajectory statistics" block + the separate
+ * "Branch names" list. Each branch row pairs a colour swatch +
+ * (renamable) label with its trajectory-length statistics. */
+.golgi-branch-summary {
+    background: #fafafa;
+    border: 1px solid #e6e6e8;
+    border-radius: 6px;
+    padding: 6px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.golgi-branch-summary-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr)
+        repeat(5, minmax(46px, max-content));
+    align-items: center;
+    column-gap: 8px;
+    padding: 4px 0;
+    min-height: 28px;
+}
+.golgi-branch-summary-row.is-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: #1f2024;
+    border-bottom: 1px solid #d6d6da;
+    padding-bottom: 2px;
+}
+.golgi-branch-summary-row.is-subheader {
+    font-size: 10px;
+    color: #888a90;
+    padding-top: 0;
+    padding-bottom: 4px;
+    min-height: 18px;
+}
+.golgi-branch-summary-row.is-overall {
+    border-top: 1px dashed transparent;
+    font-weight: 600;
+}
+.golgi-branch-summary-row.is-branch + .golgi-branch-summary-row.is-overall {
+    border-top: 1px solid #e6e6e8;
+}
+.golgi-branch-summary-row.is-branch {
+    /* keep light divider between branch rows */
+    border-top: 1px solid #f0f0f3;
+}
+.golgi-branch-summary-row.is-branch:first-of-type {
+    border-top: none;
+}
+.golgi-bs-name {
+    font-size: 12px;
+    color: #1f2024;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+}
+.golgi-bs-name-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+.golgi-bs-name-edit {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.golgi-bs-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.golgi-bs-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.golgi-bs-edit-btn,
+.golgi-bs-save-btn,
+.golgi-bs-cancel-btn {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid #e3e3e6;
+    background: #ffffff;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 120ms ease, color 120ms ease;
+}
+.golgi-bs-edit-btn:hover {
+    background: #f0f0f3;
+    color: #1f2024;
+}
+.golgi-bs-save-btn {
+    color: #146e3a;
+    border-color: #c7e6d0;
+    background: #f0faf3;
+}
+.golgi-bs-save-btn:hover {
+    background: #d8f0e0;
+}
+.golgi-bs-cancel-btn {
+    color: #b8336a;
+    border-color: #ebd4dd;
+    background: #fdf2f5;
+}
+.golgi-bs-cancel-btn:hover {
+    background: #f9dde6;
+}
+.golgi-bs-num {
+    font-size: 12px;
+    color: #1f2024;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+.golgi-branch-summary-row.is-subheader .golgi-bs-num,
+.golgi-branch-summary-row.is-header .golgi-bs-num {
+    color: inherit;
+}
+
+/* Fiber tab — single-fiber playground (§12-style).
+ * Layout: controls + pulse design rows on top, run button +
+ * status banner, then a 2-tile output grid (pulse preview +
+ * propagation heatmap side-by-side) and a full-width waterfall
+ * underneath. Sim log collapses to a Pre at the very bottom. */
+.golgi-fiber-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.golgi-fiber-panel h2 {
+    margin-bottom: 4px;
+}
+/* Top-of-panel controls — now ONLY holds the trajectory
+ * combobox (full-width). Backend / model / diameter / tstop
+ * moved down next to the Run button (see `.golgi-fiber-sim-row`
+ * further below). */
+.golgi-fiber-controls {
+    display: block;
+    padding: 10px 12px;
+    background: #fafafb;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+}
+.golgi-fiber-controls > * {
+    width: 100%;
+}
+.golgi-fiber-num,
+.golgi-fiber-sel,
+.golgi-fiber-chk {
+    min-width: 0;   /* allow flex/grid children to shrink */
+}
+/* Pulse-design wrapper — 2-col grid (params left, designed-pulse
+ * Plotly preview right). Preview lives next to the params it
+ * depends on so the user sees the waveform shape update live as
+ * they edit. On narrow viewports the layout falls back to a
+ * single column (preview stacks below). */
+.golgi-fiber-pulse-2col {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 12px;
+    align-items: stretch;
+}
+@media (max-width: 920px) {
+    .golgi-fiber-pulse-2col {
+        grid-template-columns: 1fr;
+    }
+}
+.golgi-fiber-pulse-design {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fafafb;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+    min-width: 0;
+}
+.golgi-fiber-pulse-preview {
+    background: #ffffff;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+    min-height: 240px;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;  /* anchor for the F2.3.a export button */
+}
+.golgi-fiber-pulse-preview > * {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.golgi-fiber-pulse-design h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.golgi-fiber-pulse-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    align-items: end;
+}
+/* Sim-row — single horizontal strip holding backend + model
+ * dropdowns, two slider+input pairs (diameter, simulation
+ * duration), and the inline Run CTA. flex-row so the slider
+ * pairs can grow to fill any extra horizontal room while the
+ * dropdowns + CTA stay at their natural widths. */
+/* Sim-row — TWO horizontal strips stacked. Row 1 carries
+ *   Backend | Fiber Model | Diameter (slider + spinner).
+ * Row 2 carries
+ *   Simulation Duration (slider + spinner)  |  ▶ Run.
+ * The split lets each control breathe — particularly the
+ * duration slider, which had ~150 px in the previous single-
+ * row layout and was hard to drag accurately. The Run CTA
+ * gets the block treatment (full-width pill) so it matches
+ * the Solve tab's "Run FEM solve" button.
+ */
+.golgi-fiber-sim-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: #fafafb;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+    flex-wrap: nowrap;
+}
+/* Row 2 sits directly below row 1 (in the panel's vertical
+ * flex flow). Slight top margin so the two rows read as
+ * grouped but distinct. */
+.golgi-fiber-sim-row-2 {
+    margin-top: 10px;
+}
+/* Dropdowns: backend (narrow) + model (medium). */
+.golgi-fiber-sim-row > .golgi-fiber-sel {
+    flex: 0 0 auto;
+}
+.golgi-fiber-sim-row > .golgi-fiber-sel:nth-of-type(1) {
+    min-width: 130px;
+    max-width: 160px;
+}
+.golgi-fiber-sim-row > .golgi-fiber-sel:nth-of-type(2) {
+    min-width: 220px;
+    max-width: 260px;
+}
+/* Slider + numeric input pair — slider expands to fill,
+ * spinner sits at a fixed width on the right. Spinner widened
+ * from 76 → 110 px so multi-digit diameters (and the ▲▼
+ * step controls) don't crop. */
+.golgi-fiber-slider-pair {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 260px;
+    min-width: 260px;
+}
+.golgi-fiber-slider-pair-wide {
+    /* Used on the Simulation Duration pair in row 2 — gets
+     * roughly half the row width so the slider has plenty of
+     * range to drag against. */
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.golgi-fiber-slider {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.golgi-fiber-slider-num {
+    flex: 0 0 110px;
+    width: 110px;
+}
+/* Inline Run CTA (legacy) — kept around for any caller that
+ * still uses the inline variant; the new row-2 layout uses
+ * the standard block wrapper instead. */
+.golgi-cta-wrapper-inline {
+    flex: 0 0 auto;
+    min-width: 120px;
+}
+.golgi-cta-wrapper-inline .golgi-cta-inner {
+    padding: 8px 18px;
+    font-size: 13px;
+}
+/* Run CTA in the new two-row sim-row layout — same block-
+ * wrapper styling as FEM Solve's button so the visual weight
+ * matches. `flex: 0 0 260px` reserves a comfortable label
+ * width for "▶ Run fiber simulation" without stretching when
+ * the duration pair has extra room. */
+.golgi-fiber-sim-row-2 .golgi-fiber-run-cta {
+    flex: 0 0 260px;
+    margin: 0;
+}
+.golgi-fiber-run-cta {
+    margin: 0;
+}
+.golgi-fiber-status {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+                  Consolas, monospace;
+    font-size: 12px;
+    color: #444;
+    padding: 4px 4px 0;
+}
+/* Title row — H2 + info-icon button laid out inline. The icon
+ * button sits just after the title with a small gap. */
+.golgi-fiber-title-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.golgi-fiber-info-btn {
+    color: #9ca3af;
+}
+/* Output grid — V_m propagation heatmap on top, waterfall
+ * below. Both span the full panel width since the pulse-preview
+ * tile that used to live up here moved into the pulse-design
+ * block (right column). */
+.golgi-fiber-output-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* R1.4: 3rd row hosts the cNAP tile. The row is only
+     * populated when recording_montages are defined; the
+     * default min-content height collapses to ~0 otherwise so
+     * the layout still looks compact for projects that don't
+     * use recording. */
+    grid-template-rows: 320px 320px minmax(0, auto);
+    grid-template-areas:
+        "heat"
+        "water"
+        "cnap";
+    gap: 12px;
+}
+.golgi-fiber-tile {
+    border: 1px solid #ececef;
+    border-radius: 6px;
+    background: #ffffff;
+    overflow: hidden;
+    min-height: 0;   /* let Plotly fill the box */
+    position: relative;  /* anchor for the F2.3.a export button */
+}
+.golgi-fiber-tile-heat  { grid-area: heat;  }
+.golgi-fiber-tile-water { grid-area: water; }
+/* R1.4 cNAP tile sits in its own grid row beneath the
+ * waterfall. Padding is folded in since the tile's content
+ * has its own header row (title + montage selector + status). */
+.golgi-fiber-tile-cnap  {
+    grid-area: cnap;
+    padding: 10px 12px;
+    min-height: 320px;
+}
+.golgi-fiber-tile-cnap > div:last-child {
+    /* Let Plotly's responsive widget fill the remaining
+     * height beneath the title + status rows. */
+    min-height: 260px;
+}
+.golgi-fiber-log {
+    max-height: 180px;
+    overflow-y: auto;
+    background: #1d1f23;
+    color: #c5c8d1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+                  Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.45;
+}
+.golgi-fiber-log pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+/* Solve tab — 2×2 grid layout. The 3D viewport (which is
+ * mounted ONCE elsewhere) gets repositioned via
+ * `.golgi-viewport.mode-grid-tl` into the top-left cell; the
+ * three plot tiles (heatmap / Vₑ-Ez ribbon / Vₑ-AF ribbon) sit
+ * in the other three cells via CSS grid-area. Grid container is
+ * an absolute overlay with `pointer-events: none` so the
+ * viewport cell stays interactive; each tile re-enables pointer
+ * events on itself. */
+.golgi-viewport.mode-grid-tl {
+    position: absolute !important;
+    top: 0; left: 0;
+    width: 50% !important;
+    height: 50% !important;
+    flex: none !important;
+    border-right: 1px solid #e3e3e6;
+    border-bottom: 1px solid #e3e3e6;
+    z-index: 5;
+}
+.golgi-solve-grid {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    pointer-events: none;
+    z-index: 6;
+}
+.golgi-solve-tile {
+    background: #ffffff;
+    border: 1px solid #e3e3e6;
+    overflow: hidden;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    position: relative;  /* anchor for the F2.3.a export button */
+}
+.golgi-solve-tile.tile-render {
+    /* Top-left — the 3D viewport already sits here. This empty
+     * tile only adds a frame so the cell visually matches the
+     * other three. It's pointer-events: none so the viewport
+     * underneath keeps full interaction. */
+    grid-area: 1 / 1 / 2 / 2;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+}
+.golgi-solve-tile.tile-heatmap { grid-area: 1 / 2 / 2 / 3; }
+.golgi-solve-tile.tile-veez    { grid-area: 2 / 1 / 3 / 2; }
+.golgi-solve-tile.tile-af      { grid-area: 2 / 2 / 3 / 3; }
+
+/* F3.2e Compare-panel tile shell. Two stacked tiles sit inside
+ * `.golgi-compare-panel`, each with the same header / body
+ * convention as the Solve grid's tiles. */
+.golgi-compare-panel {
+    padding: 16px;
+    overflow-y: auto;
+}
+.golgi-compare-tile {
+    background: #ffffff;
+    border: 1px solid #e3e3e6;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
+    height: 480px;
+}
+.golgi-compare-tile .golgi-tile-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+}
+.golgi-compare-tile .js-plotly-plot,
+.golgi-compare-tile .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* F3.1 design switcher — floats over the top-left (3D viewport)
+ * cell so the user can switch between solved electrode designs
+ * without leaving the analysis view. */
+.golgi-design-switcher {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    z-index: 7;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #d4d4d8;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    pointer-events: auto;
+}
+.golgi-design-switcher-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #3a3a40;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.golgi-tile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    border-bottom: 1px solid #ececef;
+    background: #f7f7f9;
+    flex: 0 0 auto;
+}
+.golgi-tile-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f2024;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+}
+.golgi-tile-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.golgi-tile-export-btn {
+    appearance: none;
+    border: 1px solid #d4d4d8;
+    background: #ffffff;
+    color: #3a3a40;
+    font-size: 10.5px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+.golgi-tile-export-btn:hover {
+    background: #f1f1f3;
+    border-color: #b3b3b8;
+}
+.golgi-tile-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+.golgi-tile-body .js-plotly-plot,
+.golgi-tile-body .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+.golgi-tile-controls {
+    flex: 0 0 auto;
+    padding: 6px 12px 8px;
+    border-top: 1px solid #ececef;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.golgi-tile-controls .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #555;
+}
+.golgi-tile-controls .slider-row label {
+    flex: 0 0 auto;
+    min-width: 100px;
+    font-weight: 500;
+}
+
+/* CTA-styled "Run FEM solve" — full-width variant of the
+ * welcome-page rotating-conic Create-button. The wrapper class
+ * adds `display: block; width: 100%` so it stretches the
+ * sidebar. */
+.golgi-cta-wrapper-block {
+    display: block;
+    width: 100%;
+}
+.golgi-cta-wrapper-block .golgi-cta-inner {
+    width: 100%;
+    justify-content: center;
+    font-size: 15px;
+    padding: 12px 18px;
+}
+
+/* Static scale-bar overlay in the viewport corner. Fixed pixel
+   size (150 × 10) labelled "5 mm" so the user has a constant
+   visual reference for the order of magnitude we work at in
+   peripheral-nerve stimulation. */
+.golgi-scalebar {
+    position: absolute;
+    bottom: 20px;
+    left: 24px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+}
+.golgi-scalebar-bar {
+    width: 150px;
+    height: 10px;
+    background: #1f2024;
+    border-radius: 1px;
+}
+.golgi-scalebar-label {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2024;
+    letter-spacing: 0.04em;
+}
+/* Horizontal Vₑ colourbar — sits at the bottom of the viewport
+ * so the user can read off mV values for the colour-coded
+ * endo/epi nerve surface and the fiber tubes. The legend at the
+ * top-right already lists the actors; this strip adds the value
+ * scale that those actors are mapped through. Centered
+ * horizontally; raised just above the analysis panel split. */
+.golgi-ve-cbar {
+    /* No background card — just the bare colourbar strip sitting
+     * over the viewport. The PNG itself carries the gradient +
+     * tick labels + title; we used to wrap it in a dark glass
+     * card to make the white text readable, but the viewport
+     * background is solid white now, so the labels are switched
+     * to dark in `_render_ve_colorbar_png` and the card is
+     * dropped. */
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    pointer-events: none;
+    width: 480px;
+    max-width: calc(100vw - 280px);
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+}
+.golgi-ve-cbar img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ----- Welcome view (project picker) ----------------------------
+ * Centered hero layout: big wordmark logo, "Welcome back!"
+ * greeting, single red pill CTA, then a 4-column tile grid of
+ * existing projects. Absolute-positioned inside .golgi-central
+ * so it covers the (kept-mounted) plotter_ui below.
+ * --------------------------------------------------------------*/
+/* Animated dark-slate background. Three radial-gradient
+ * hotspots whose centres, sizes, and colours are animated via
+ * @property-registered custom properties — the 10 s
+ * alternating animation makes the highlights drift across the
+ * dark navy base for a slow ambient glow. Applied to BOTH the
+ * welcome view AND the workspace shell so the dark theme
+ * persists across all pages of the app. */
+@property --c-0 {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: hsla(205, 68%, 8%, 0.57);
+}
+@property --x-0 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 1%;
+}
+@property --y-0 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 2%;
+}
+@property --s-start-0 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 7%;
+}
+@property --s-end-0 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 84%;
+}
+@property --x-1 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 86%;
+}
+@property --s-start-1 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 7%;
+}
+@property --s-end-1 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 72%;
+}
+@property --y-1 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 75%;
+}
+@property --c-1 {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: hsla(194, 0%, 100%, 1);
+}
+@property --c-2 {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: hsla(205, 83%, 17%, 0.48);
+}
+@property --y-2 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 98%;
+}
+@property --s-start-2 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 7%;
+}
+@property --s-end-2 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 84%;
+}
+@property --x-2 {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 2%;
+}
+@keyframes golgi-welcome-bg {
+    0% {
+        --c-0: hsla(205, 68%, 8%, 0.57);
+        --x-0: 1%;
+        --y-0: 2%;
+        --s-start-0: 7%;
+        --s-end-0: 84%;
+        --x-1: 86%;
+        --s-start-1: 7%;
+        --s-end-1: 72%;
+        --y-1: 75%;
+        --c-1: hsla(194, 0%, 100%, 1);
+        --c-2: hsla(205, 83%, 17%, 0.48);
+        --y-2: 98%;
+        --s-start-2: 7%;
+        --s-end-2: 84%;
+        --x-2: 2%;
+    }
+    100% {
+        --c-0: hsla(205, 68%, 8%, 0.57);
+        --x-0: 44%;
+        --y-0: 80%;
+        --s-start-0: 2%;
+        --s-end-0: 63%;
+        --x-1: 8%;
+        --s-start-1: 2%;
+        --s-end-1: 63%;
+        --y-1: 88%;
+        --c-1: hsla(194, 0%, 100%, 1);
+        --c-2: hsla(205, 83%, 17%, 0.48);
+        --y-2: 74%;
+        --s-start-2: 2%;
+        --s-end-2: 63%;
+        --x-2: 14%;
+    }
+}
+/* Shared rule: paint the dark animated gradient on both the
+ * welcome view and the workspace shell (.golgi-central). The
+ * specific containers add their own positioning + flex rules
+ * below; this rule just supplies the background. */
+/* Workspace shell keeps the CSS-only animated gradient — Vanta is
+ * reserved for the welcome page where the heavier WebGL effect is
+ * worth the extra cost. The base colour is the same so the visual
+ * theme stays cohesive across pages. */
+.golgi-central {
+    background-color: hsla(205, 63%, 11%, 1);
+    background-image:
+        radial-gradient(
+            circle at var(--x-0) var(--y-0),
+            var(--c-0) var(--s-start-0),
+            transparent var(--s-end-0)
+        ),
+        radial-gradient(
+            circle at var(--x-1) var(--y-1),
+            var(--c-1) var(--s-start-1),
+            transparent var(--s-end-1)
+        ),
+        radial-gradient(
+            circle at var(--x-2) var(--y-2),
+            var(--c-2) var(--s-start-2),
+            transparent var(--s-end-2)
+        );
+    background-blend-mode: normal, overlay, normal;
+    animation: golgi-welcome-bg 10s linear infinite alternate;
+    will-change: transform, opacity;
+    contain: paint;
+}
+.golgi-welcome {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow-y: auto;
+    padding: 64px 32px 80px;
+    box-sizing: border-box;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Animated CSS-gradient fallback — visible while three.js +
+     * vanta finish loading over the network, AND if WebGL is
+     * unavailable (CDN blocked, headless browser, etc.). Once
+     * Vanta successfully initialises it inserts a <canvas> in
+     * front of this background, hiding it. Same palette as the
+     * workspace shell so the visual theme stays consistent. */
+    background-color: hsla(205, 63%, 11%, 1);
+    background-image:
+        radial-gradient(
+            circle at var(--x-0) var(--y-0),
+            var(--c-0) var(--s-start-0),
+            transparent var(--s-end-0)
+        ),
+        radial-gradient(
+            circle at var(--x-1) var(--y-1),
+            var(--c-1) var(--s-start-1),
+            transparent var(--s-end-1)
+        ),
+        radial-gradient(
+            circle at var(--x-2) var(--y-2),
+            var(--c-2) var(--s-start-2),
+            transparent var(--s-end-2)
+        );
+    background-blend-mode: normal, overlay, normal;
+    /* Pin the gradient to the viewport so it stays put as the
+     * welcome content scrolls — without this, a long project
+     * list scrolls below the original viewport and reveals a
+     * black band where the gradient ran out. */
+    background-attachment: fixed;
+    animation: golgi-welcome-bg 10s linear infinite alternate;
+    /* `will-change: transform` was here but it creates a
+     * containing block that breaks `position: fixed` on the
+     * Vanta canvas child (override below). The CSS gradient
+     * animation runs fine without it. */
+    contain: paint;
+}
+/* Vanta inserts its canvas as the first child of .golgi-welcome
+ * with `position: absolute; top: 0; height: 100%`. That's
+ * relative to the welcome's CONTENT box — which scrolls with
+ * the user, so the fog drifts off-screen on long pages. Force
+ * the canvas to `position: fixed` so it always covers the
+ * visible viewport regardless of scroll offset. */
+.golgi-welcome > canvas {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    z-index: 0;
+}
+/* Vanta inserts its canvas as the first child of .golgi-welcome
+ * and absolute-positions it. Everything else in the welcome view
+ * must form its own stacking context above the canvas, otherwise
+ * the canvas paints on top of the logo/buttons/tiles. */
+.golgi-welcome > *:not(canvas) {
+    position: relative;
+    z-index: 1;
+}
+/* Signed-out modifier — Projects section is hidden, so the only
+ * content is the hero block + version footer. Switch the column
+ * to `justify-content: center` so the whole group (hero +
+ * version) sits centred in the viewport.
+ *
+ * Hero's bottom margin is also reset because the 56 px gap is
+ * meant to separate it from the Projects section — redundant
+ * when the section isn't rendered. */
+.golgi-welcome.is-signed-out {
+    justify-content: center;
+}
+.golgi-welcome.is-signed-out .golgi-welcome-hero {
+    margin-bottom: 0;
+}
+.golgi-welcome-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 56px;
+    width: 100%;
+}
+.golgi-welcome-logo {
+    /* Sized for the animated GIF (logo_animated.gif, 1280×720
+     * with content at y=232..450). The canvas has ~232px of
+     * transparent space above and ~270px below the wordmark.
+     * At display height 250 those become ~81px top + ~94px
+     * bottom, so negative margins on both ends pull the
+     * surrounding hero elements in tight without cropping the
+     * animation. Matches the visible wordmark size of the prior
+     * static PNG (~76 px content at height 200). */
+    margin-top: 40px;
+    height: 320px;
+    width: auto;
+    margin-bottom: 0px;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+.golgi-welcome-greeting {
+    /* Personal "Welcome back, {first_name}!" line. Sits between
+     * the hero (logo + CTAs) and the Projects section as its
+     * own visual band. Roughly balanced margins so the greeting
+     * reads as the visual centre between those two clusters.
+     * Sized large + light weight so it carries the section
+     * without competing with the wordmark above. */
+    font-size: 38px;
+    font-weight: 300;
+    color: #ffffff;
+    margin: 20px 0 56px 0;
+    letter-spacing: -0.015em;
+    text-align: center;
+    line-height: 1.2;
+}
+.golgi-welcome-greeting-name {
+    /* First name in the warm brand orange — same `#FE8225` used
+     * by the avatar ring + CTA conic spinner. Higher contrast
+     * against the dark navy welcome background than the magma
+     * red we tried first. */
+    color: #FE8225;
+    font-weight: 500;
+}
+.golgi-welcome-actions {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+/* Welcome-page CTAs scale to ~2x the standard pill button.
+ * Scoped to .golgi-welcome-actions descendants so the regular
+ * button sizing elsewhere stays unchanged. */
+.golgi-welcome-actions .golgi-btn-primary,
+.golgi-welcome-actions .golgi-btn-secondary {
+    font-weight: 100;
+    font-size: 22px;
+    border-radius: 40px;
+    gap: 14px;
+    letter-spacing: 0.01em;
+}
+/* Welcome-page secondary CTA. Padding matches the Create
+ * button's outer dimensions (2 px wrapper + 16 / 48 inner =
+ * 18 / 50). Palette overridden to white-on-translucent so the
+ * button reads against the dark animated gradient. Hover stays
+ * within the same scheme — slightly brighter border + fill —
+ * instead of the red-accent hover used in light-themed
+ * dialogs. */
+.golgi-welcome-actions .golgi-btn-secondary,
+.golgi-welcome-actions .golgi-btn-secondary:link,
+.golgi-welcome-actions .golgi-btn-secondary:visited {
+    padding: 17px 49px;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.06);
+}
+.golgi-welcome-actions .golgi-btn-secondary:hover {
+    color: #ffffff !important;
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.14);
+}
+.golgi-welcome-actions .golgi-btn-icon {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.9;
+}
+.golgi-welcome-actions .golgi-btn-secondary:hover .golgi-btn-icon {
+    filter: brightness(0) invert(1) !important;
+    opacity: 1.0;
+}
+/* Trailing/leading icon inside any .golgi-btn-* button. Source SVG
+ * is black; on .golgi-btn-secondary it stays dark to match the
+ * label text, and on hover the filter recipe maps it to the red
+ * accent colour. */
+.golgi-btn-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    filter: brightness(0);
+    opacity: 0.7;
+    transition: opacity 0.12s ease, filter 0.12s ease;
+}
+.golgi-btn-secondary:hover .golgi-btn-icon {
+    /* Black SVG → #e24b4a via a precomputed filter chain. */
+    filter: brightness(0) saturate(100%) invert(40%)
+            sepia(64%) saturate(2470%) hue-rotate(338deg)
+            brightness(95%) contrast(85%);
+    opacity: 1.0;
+}
+/* Primary (red) button: invert the black SVG to white so the
+ * icon stays legible on the red ground. */
+.golgi-btn-primary .golgi-btn-icon {
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+}
+.golgi-welcome-grid {
+    max-width: 1100px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+/* Tile border angle for the hover-only rotating conic. Same
+ * @property pattern as the Create-button border; the keyframe
+ * sweeps it 0 → 360 deg over 5 s. The hover rule layers a
+ * linear-gradient into padding-box (solid interior) + the conic
+ * into border-box (the 2 px ring). Off-hover, the ring is just
+ * the existing subtle grey. */
+@property --tile-border-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+@keyframes golgi-tile-border-spin {
+    to { --tile-border-angle: 360deg; }
+}
+.golgi-welcome-tile {
+    background: #f3f3f5;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.15s ease,
+                background 0.15s ease;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 1 / 1;
+    position: relative;
+}
+.golgi-welcome-tile:hover {
+    box-shadow: 0 8px 22px rgba(20, 22, 28, 0.18);
+    transform: translateY(-2px);
+    /* Two-layer background: the padding-box fills the interior
+     * with a flat colour (covered by the thumb + body anyway);
+     * the border-box conic gradient is what's visible in the
+     * 2 px transparent border. */
+    background:
+        linear-gradient(#ededf0, #ededf0) padding-box,
+        conic-gradient(
+            from var(--tile-border-angle),
+            rgba(255, 255, 255, 0.10) 80%,
+            #ffffff 86%,
+            #ffe7c2 90%,
+            #ffffff 94%,
+            rgba(255, 255, 255, 0.10)
+        ) border-box;
+    animation: golgi-tile-border-spin 5s linear infinite;
+}
+.golgi-welcome-tile-thumb {
+    flex: 1 1 auto;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #d4d4d8;
+    font-size: 48px;
+    min-height: 0;
+}
+.golgi-welcome-tile-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.golgi-welcome-tile-body {
+    padding: 10px 14px 12px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(6px);
+    /* Reserve a fixed minimum height so the info panel doesn't
+     * collapse on tiles with no labels — that made the grid
+     * look ragged when some projects had stage tags and others
+     * didn't. Sized to fit the name + modified date + a single
+     * row of stage chips comfortably. */
+    min-height: 82px;
+    box-sizing: border-box;
+}
+.golgi-welcome-tile-name {
+    font-weight: 600;
+    color: #1f2024;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+}
+.golgi-welcome-tile-mod {
+    font-size: 10.5px;
+    color: #888a90;
+}
+.golgi-welcome-tile-stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 6px;
+}
+.golgi-welcome-tile-stage {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: rgba(226, 75, 74, 0.10);
+    color: #e24b4a;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+.golgi-welcome-empty {
+    text-align: center;
+    color: #888a90;
+    padding: 16px 20px;
+    font-size: 13px;
+    grid-column: 1 / -1;
+}
+/* Terminal-style version + copyright line that sits directly
+ * under the welcome content. Monospace, white on the dark
+ * gradient, slightly dimmed so it reads as supporting metadata
+ * rather than a third CTA. No hairline rule — the small fixed
+ * top margin is the only visual separation from the buttons /
+ * Projects section above. */
+.golgi-welcome-version {
+    margin-top: 50px;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+                  Consolas, monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.04em;
+    text-align: center;
+    user-select: none;
+}
+/* Identity chip — small "<email> · sign out" pill pinned to the
+ * very top-right corner of the welcome view. Uses the parent
+ * compound selector to beat the `.golgi-welcome > *:not(canvas)`
+ * catch-all (which forces relative-positioning + z-index:1 on
+ * every non-canvas child). Without that specificity bump, our
+ * `position: absolute` here gets cascaded over and the chip ends
+ * up centered in the flex flow instead of in the corner. */
+.golgi-welcome > .golgi-welcome-identity {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    left: auto;
+    bottom: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+                  Consolas, monospace;
+    z-index: 5;
+}
+.golgi-welcome-identity-email {
+    opacity: 0.85;
+}
+.golgi-welcome-identity-sep {
+    opacity: 0.45;
+}
+.golgi-welcome-signout-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font: inherit;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.35);
+    text-underline-offset: 2px;
+    transition: background 120ms ease, color 120ms ease;
+}
+.golgi-welcome-signout-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+/* Sign-in prompt — replaces the project-tile grid when nobody
+ * is logged in. Same width as the section header above so the
+ * empty-state looks intentional. */
+.golgi-welcome-signin-prompt {
+    width: 100%;
+    padding: 32px 24px;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.78);
+    text-align: center;
+}
+.golgi-welcome-signin-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.92);
+    margin-bottom: 6px;
+}
+.golgi-welcome-signin-body {
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.62);
+    max-width: 460px;
+    margin: 0 auto;
+}
+/* Mode-switch link inside the login/register card. Reads as a
+ * textual link rather than a button so it doesn't compete with
+ * the primary "Sign in" / "Create account" CTAs alongside it. */
+.golgi-auth-link {
+    background: transparent;
+    border: none;
+    color: #1f6feb;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 4px 2px;
+}
+.golgi-auth-link:hover {
+    color: #1158c7;
+}
+/* Section wrapper for the project tiles — gives the grid a
+ * named header ("Projects") + thin top/bottom rules so it reads
+ * as one bounded region rather than tiles floating on the
+ * background. Pattern follows the common dashboard convention
+ * of an uppercase letter-spaced caption inline with a hairline
+ * rule on its right. */
+.golgi-welcome-section {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    flex-direction: column;
+}
+.golgi-welcome-section-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.golgi-welcome-section-title {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+                  Consolas, monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.78);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    user-select: none;
+    flex: 0 0 auto;
+}
+.golgi-welcome-section-rule {
+    flex: 1 1 auto;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.18);
+}
+.golgi-welcome-section-foot {
+    margin-top: 30px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.18);
+    width: 100%;
+}
+
+/* ----- Project badge in the navbar (right side, while a project
+ * is open) — small pill showing the name + last modified time
+ * next to the close button.
+ * --------------------------------------------------------------*/
+/* ---------------------------------------------------------------
+ * Project-name pill — lives in the LEFT side of the navbar,
+ * between the logo and the first menu button. The name itself
+ * is a button (opens the project-details dialog); the "saved …"
+ * chip next to it is an info-coloured passive status marker
+ * (light blue, not the previous red — red read like an error).
+ * --------------------------------------------------------------- */
+.golgi-navbar-project {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 16px;
+    font-size: 12px;
+    line-height: 1;
+    max-width: 360px;
+}
+.golgi-navbar-project-name {
+    /* Clean thin sans-serif in the brand magma red so the
+     * project name reads as a distinct identity marker. Same
+     * `#e24b4a` used throughout the app (primary CTA, active-tab
+     * highlight). Button stays a button (cursor + click target)
+     * but has no visual hover state — by request, hover does
+     * nothing. */
+    color: #e24b4a;
+    font-family: "Inter", "Helvetica Neue", -apple-system,
+        BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    letter-spacing: 0;
+    background: transparent;
+    border: none;
+    padding: 3px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+.golgi-navbar-project-saved {
+    color: #1d4ed8;             /* info blue 700 */
+    background: #eff6ff;        /* info blue 50  */
+    border: 1px solid #bfdbfe;  /* info blue 200 */
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Confirmation dialog look — keep the card subtle, the action
+ * row right-aligned with destructive intent expressed via the
+ * red primary colour we set globally. */
+.golgi-dialog-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2024;
+    margin-bottom: 6px;
+}
+.golgi-dialog-body {
+    color: #4c4c50;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* ----- Project-detail lightbox -------------------------------
+ * Opened by clicking a project tile on the welcome screen. Two-
+ * column layout (thumbnail | metadata) with description below
+ * and Open/Delete buttons in the top-right corner.
+ * -----------------------------------------------------------*/
+.golgi-detail-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    /* Comfortable inner padding around every section. Each
+     * sub-block (actions / header / body) keeps its own minor
+     * offsets but starts from this baseline so the card never
+     * feels cramped against the dialog edge. */
+    padding: 8px 12px 20px;
+}
+/* Inline action group — sits in the title row between the
+ * pencil-edit button and the close X. `margin-left: auto`
+ * pushes it to the right end of the row; when this group is
+ * hidden (navbar entry), the close-X carries its own
+ * `margin-left: auto` and ends up at the right edge anyway. */
+.golgi-detail-actions-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+/* User chip — small avatar + username, used to display owner +
+ * last-modifier in the detail dialog. The avatar mirrors the
+ * navbar circle: subtle border, fixed 22 px circle. */
+.golgi-detail-userchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.golgi-detail-userchip-img {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    flex: 0 0 auto;
+}
+.golgi-detail-userchip-name {
+    font-size: 13px;
+    color: #1f2024;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Modified row combines the date + a small "by <user>" chip. */
+.golgi-detail-meta-modified {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+.golgi-detail-meta-by {
+    font-size: 12px;
+    color: #888;
+}
+/* Share picker — VAutocomplete with avatar-prefixed chips +
+ * items. The autocomplete itself uses standard Vuetify density;
+ * the avatar img in chips + dropdown items is the only custom
+ * styling needed. */
+.golgi-detail-share-picker {
+    min-width: 0;
+    width: 100%;
+}
+.golgi-detail-share-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    flex: 0 0 auto;
+}
+.golgi-detail-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+.golgi-detail-label-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 4px 3px 10px;
+    border-radius: 12px;
+    background: rgba(226, 75, 74, 0.10);
+    color: #e24b4a;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+.golgi-detail-label-remove {
+    background: transparent;
+    border: none;
+    color: inherit;
+    padding: 0;
+    margin-left: 2px;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.55;
+    transition: opacity 0.12s ease, background 0.12s ease;
+    font-family: inherit;
+}
+.golgi-detail-label-remove:hover {
+    opacity: 1;
+    background: rgba(226, 75, 74, 0.18);
+}
+.golgi-detail-label-add {
+    padding: 3px 10px 3px 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: 1px dashed #cfcfd3;
+    background: transparent;
+    color: #888a90;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    transition: border-color 0.12s ease, color 0.12s ease,
+                background 0.12s ease;
+    font-family: inherit;
+}
+.golgi-detail-label-add:hover {
+    border-color: #e24b4a;
+    color: #e24b4a;
+    background: #fff5f5;
+}
+.golgi-detail-label-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.golgi-detail-label-input input {
+    background: white;
+    border: 1px solid #d4d4d8;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-family: inherit;
+    outline: none;
+    width: 110px;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.golgi-detail-label-input input:focus {
+    border-color: #e24b4a;
+    box-shadow: 0 0 0 2px rgba(226, 75, 74, 0.15);
+}
+.golgi-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 28px 8px;
+}
+.golgi-detail-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1f2024;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Close X anchors to the right edge of the title row. */
+.golgi-detail-close-btn {
+    margin-left: auto;
+}
+.golgi-detail-edit-btn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease;
+    line-height: 0;
+}
+.golgi-detail-edit-btn:hover {
+    background: rgba(20, 22, 28, 0.06);
+}
+.golgi-detail-edit-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    /* Source stroke is #464455 (a dark slate). Re-tint to match
+     * the body text so the affordance reads as a subtle action
+     * not a status. Filter values derived for #1f2024. */
+    filter: brightness(0) saturate(100%);
+    opacity: 0.65;
+    transition: opacity 0.12s ease;
+}
+.golgi-detail-edit-btn:hover .golgi-detail-edit-icon {
+    opacity: 1.0;
+}
+.golgi-detail-edit-input {
+    flex: 1 1 auto;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2024;
+    letter-spacing: -0.01em;
+    background: white;
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-family: inherit;
+    min-width: 0;
+}
+.golgi-detail-edit-input:focus {
+    outline: none;
+    border-color: #e24b4a;
+    box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.15);
+}
+.golgi-detail-edit-confirm {
+    background: #e24b4a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease;
+}
+.golgi-detail-edit-confirm:hover {
+    background: #d23e3d;
+}
+.golgi-detail-edit-cancel {
+    background: transparent;
+    color: #888a90;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
+.golgi-detail-edit-cancel:hover {
+    color: #1f2024;
+}
+.golgi-detail-body {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 32px;
+    padding: 16px 28px 20px;
+}
+
+/* Tabbed body shared by Overview / Status / Activity. The tab
+ * strip sits flush with the title row above it; the divider
+ * below provides the visual seam between the strip and the
+ * windowed content. */
+.golgi-detail-tabs-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+.golgi-detail-tabs {
+    padding: 0 28px;
+    min-height: 44px;
+}
+.golgi-detail-window {
+    /* Each tab manages its own padding so the Overview tab can
+     * keep the existing grid layout while Status / Activity get
+     * a list layout with their own gutters. */
+    background: transparent;
+}
+
+/* ---- Status tab: 8 stage rows in a stacked list ----
+ * Each row reads "icon + label + details" in a single line.
+ * Pending rows soften the label colour and lose the success
+ * green on the icon so the eye runs down the completed-stage
+ * column instinctively. */
+.golgi-detail-status {
+    padding: 18px 28px 22px;
+}
+.golgi-detail-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.golgi-detail-status-row {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f8f8fa;
+    border: 1px solid #ececef;
+}
+.golgi-detail-status-row.is-pending {
+    background: #ffffff;
+    border-color: #e3e3e6;
+}
+.golgi-detail-status-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+}
+.golgi-detail-status-icon.is-done-icon {
+    background: #e6f4ea;
+    color: #146e3a;
+}
+.golgi-detail-status-icon.is-pending-icon {
+    background: #f0f0f3;
+    color: #9ca3af;
+}
+.golgi-detail-status-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.golgi-detail-status-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2024;
+}
+.golgi-detail-status-row.is-pending .golgi-detail-status-label {
+    color: #888a90;
+}
+.golgi-detail-status-details {
+    font-size: 11px;
+    color: #6b7280;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.golgi-detail-status-empty {
+    color: #9ca3af;
+    font-size: 12px;
+    padding: 24px 0;
+    text-align: center;
+}
+
+/* ---- Activity tab: chronological audit-log scroller ----
+ * Capped-height scrollable container; each row is a single
+ * line with an optional expandable JSON payload panel below.
+ * Newest events sit at the top. */
+.golgi-detail-activity {
+    padding: 18px 28px 22px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+.golgi-detail-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.golgi-detail-activity-row {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border-bottom: 1px solid #f0f0f3;
+}
+.golgi-detail-activity-row:last-child {
+    border-bottom: none;
+}
+.golgi-detail-activity-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    min-height: 28px;
+}
+.golgi-detail-activity-time {
+    color: #6b7280;
+    font-variant-numeric: tabular-nums;
+    flex: 0 0 80px;
+    cursor: default;
+}
+.golgi-detail-activity-user {
+    flex: 0 0 auto;
+    background: #f3f3f5;
+    border: 1px solid #e3e3e6;
+    border-radius: 999px;
+    padding: 2px 8px 2px 2px;
+}
+.golgi-detail-activity-user-empty {
+    color: #c4c4c8;
+    flex: 0 0 auto;
+}
+.golgi-detail-activity-action {
+    color: #1f2024;
+    font-weight: 500;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.golgi-detail-activity-status {
+    flex: 0 0 auto;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+}
+.golgi-detail-activity-status.status-success {
+    background: #e6f4ea;
+    color: #146e3a;
+}
+.golgi-detail-activity-status.status-failure {
+    background: #fde7e7;
+    color: #b8336a;
+}
+.golgi-detail-activity-status.status-info,
+.golgi-detail-activity-status:not(.status-success):not(.status-failure) {
+    background: #eef0f4;
+    color: #4c4c50;
+}
+.golgi-detail-activity-chevron {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid #e3e3e6;
+    background: #ffffff;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    transition: background 120ms ease, color 120ms ease;
+}
+.golgi-detail-activity-chevron:hover {
+    background: #f0f0f3;
+    color: #1f2024;
+}
+.golgi-detail-activity-payload {
+    margin: 6px 0 0 80px;
+    padding: 8px 10px;
+    background: #f7f7f8;
+    border: 1px solid #e3e3e6;
+    border-radius: 6px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    color: #1f2024;
+    white-space: pre-wrap;
+    max-height: 240px;
+    overflow-y: auto;
+}
+.golgi-detail-activity-empty {
+    color: #9ca3af;
+    font-size: 12px;
+    padding: 24px 0;
+    text-align: center;
+}
+.golgi-detail-thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: linear-gradient(135deg, #f3f3f5 0%, #e9e9ed 100%);
+    border-radius: 12px;
+    /* Light grey border so the preview reads as a discrete
+     * card rather than blending into the dialog body. */
+    border: 1px solid #e3e3e6;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d4d4d8;
+    font-size: 56px;
+}
+.golgi-detail-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.golgi-detail-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 22px;
+    align-content: start;
+    font-size: 13px;
+    color: #1f2024;
+}
+.golgi-detail-meta-label {
+    color: #888a90;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Electrode list row in the Electrodes drawer. Base style is a
+ * white tile with a hairline grey border; the .selected modifier
+ * paints a stronger red border + clearly tinted background +
+ * left-edge accent bar so the active row pops at a glance. */
+.golgi-elec-row {
+    padding: 8px 10px;
+    border: 1px solid #e3e3e6;
+    border-left: 4px solid transparent;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.12s ease, border-color 0.12s ease,
+                box-shadow 0.12s ease;
+}
+.golgi-elec-row:hover {
+    background: #fafafb;
+}
+.golgi-elec-row-selected {
+    border: 1px solid #e24b4a;
+    border-left: 4px solid #e24b4a;
+    background: #ffe5e5;
+    box-shadow: 0 1px 6px rgba(226, 75, 74, 0.22);
+}
+.golgi-elec-row-selected:hover {
+    background: #ffdcdc;
+}
+/* Section heading for the per-electrode editor below the
+ * electrode list. Bigger than the surrounding body copy and
+ * styled in the red accent so users can't miss which row's
+ * parameters they're editing. */
+.golgi-elec-edit-heading {
+    margin: 18px 0 6px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(226, 75, 74, 0.18);
+    font-size: 15px;
+    font-weight: 600;
+    color: #e24b4a;
+    letter-spacing: -0.005em;
+}
+.golgi-elec-edit-heading .golgi-elec-edit-eid {
+    color: #888a90;
+    font-weight: 400;
+    font-size: 11px;
+    margin-left: 8px;
+}
+.golgi-detail-meta-value {
+    color: #1f2024;
+    word-break: break-word;
+}
+.golgi-detail-stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.golgi-detail-stage {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(226, 75, 74, 0.10);
+    color: #e24b4a;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+.golgi-detail-desc {
+    padding: 18px 20px 22px;
+    color: #4c4c50;
+    font-size: 13px;
+    line-height: 1.55;
+}
+.golgi-detail-path {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: #888a90;
+    word-break: break-all;
+}
+
+/* CTA button — three stacked elements:
+ *   .golgi-cta-wrapper  : <button> shell with overflow:hidden,
+ *                          2 px padding (the visible "border"
+ *                          gap), and isolation for its own
+ *                          stacking context.
+ *   .golgi-cta-spinner  : absolutely-positioned conic-gradient
+ *                          comet, scaled 10× so its solid arc
+ *                          always covers the visible window.
+ *                          Animated by `rotate(-360deg) scale(10)`
+ *                          over 10 s for the moving border.
+ *   .golgi-cta-inner    : the visible button face on z-index:1,
+ *                          carrying the dark-red-weighted moving
+ *                          fill (background-position animated
+ *                          over an oversized linear gradient).
+ * Together: comet rotates BEHIND the inset content, only the
+ * 2 px gap shows it — same trick as the example snippet. */
+@keyframes golgi-cta-rotate {
+    0%   { transform: rotate(0deg) scale(10); }
+    100% { transform: rotate(-360deg) scale(10); }
+}
+@keyframes golgi-cta-flow {
+    /* Ten small circular orbs wandering independently. Each
+     * waypoint scatters them to a different (x %, y %) inside
+     * the button face — the offsets are picked so the cluster
+     * keeps shifting shape across the cycle, with at least one
+     * spot in each broad region (top/bottom × left/centre/right)
+     * at any given frame. */
+    0% {
+        background-position:
+            12% 30%, 28% 70%, 45% 25%, 60% 60%,
+            75% 30%, 88% 70%, 38% 50%, 20% 50%,
+            55% 35%, 80% 50%;
+    }
+    25% {
+        background-position:
+            60% 25%, 80% 60%, 25% 75%, 15% 30%,
+            50% 65%, 35% 25%, 70% 50%, 90% 35%,
+            45% 75%,  5% 65%;
+    }
+    50% {
+        background-position:
+            85% 65%, 18% 35%, 70% 25%, 40% 75%,
+            55% 30%, 90% 30%, 25% 60%, 65% 50%,
+            10% 70%, 50% 45%;
+    }
+    75% {
+        background-position:
+            30% 60%, 65% 30%, 85% 75%, 50% 25%,
+            20% 50%, 75% 60%, 45% 75%, 35% 30%,
+            60% 70%, 95% 50%;
+    }
+    100% {
+        background-position:
+            12% 30%, 28% 70%, 45% 25%, 60% 60%,
+            75% 30%, 88% 70%, 38% 50%, 20% 50%,
+            55% 35%, 80% 50%;
+    }
+}
+.golgi-cta-wrapper {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: none;
+    border-radius: 40px;
+    padding: 2px;
+    background: transparent;
+    cursor: pointer;
+    display: inline-block;
+    font-family: inherit;
+    transition: transform 0.1s ease;
+}
+.golgi-cta-wrapper:active {
+    transform: translateY(1px);
+}
+.golgi-cta-spinner {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        #FE9626 0deg,
+        #FE8225 20deg,
+        #FD353A 60deg,
+        transparent 140deg
+    );
+    animation: golgi-cta-rotate 10s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+.golgi-cta-inner {
+    /* Four soft circular orange "warm orbs" drifting over a
+     * bright red base (`#FD353A`). Dropping the burnt brown
+     * `#BC3D03` from the palette keeps every visible tone in
+     * the same luminance range, so transitions read as a soft
+     * glow rather than a harsh dark-to-bright shift. The orbs
+     * are still vertically oversized so their visible cross-
+     * sections look like soft round highlights, not ellipses. */
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px 48px;
+    border-radius: 38px;
+    /* Ten genuinely-circular spots over the red base.
+     * Pixel-sized background boxes (65–90 px square) keep each
+     * spot a true circle regardless of the button's aspect
+     * ratio. At ten orbs across a roughly 300 px-wide button,
+     * adjacent spots overlap freely — that's what produces the
+     * diffuse glow rather than ten hard dots. Sizes vary so
+     * the cluster doesn't look like a uniform polka-dot
+     * pattern. */
+    background:
+        radial-gradient(circle, #FE8225 0%, transparent 70%),
+        radial-gradient(circle, #FE9626 0%, transparent 70%),
+        radial-gradient(circle, #FE8225 0%, transparent 70%),
+        radial-gradient(circle, #FE9626 0%, transparent 70%),
+        radial-gradient(circle, #FE8225 0%, transparent 70%),
+        radial-gradient(circle, #FE9626 0%, transparent 70%),
+        radial-gradient(circle, #FE8225 0%, transparent 70%),
+        radial-gradient(circle, #FE9626 0%, transparent 70%),
+        radial-gradient(circle, #FE8225 0%, transparent 70%),
+        radial-gradient(circle, #FE9626 0%, transparent 70%),
+        #FD353A;
+    background-size:
+        75px 75px, 65px 65px, 85px 85px, 70px 70px,
+        80px 80px, 90px 90px, 70px 70px, 65px 65px,
+        80px 80px, 75px 75px, auto;
+    background-position:
+        12% 30%, 28% 70%, 45% 25%, 60% 60%,
+        75% 30%, 88% 70%, 38% 50%, 20% 50%,
+        55% 35%, 80% 50%;
+    background-repeat:
+        no-repeat, no-repeat, no-repeat, no-repeat,
+        no-repeat, no-repeat, no-repeat, no-repeat,
+        no-repeat, no-repeat, repeat;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 100;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    animation: golgi-cta-flow 30s ease-in-out infinite;
+}
+.golgi-cta-wrapper:hover .golgi-cta-inner {
+    filter: brightness(1.08);
+}
+.golgi-cta-inner .golgi-btn-icon {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+}
+
+/* ----------------------------------------------------------------
+ * User identity — navbar avatar button + dropdown menu + profile
+ * dialog. The avatar is a 36×36 circle that opens a Vuetify VMenu
+ * showing the current account header + Profile / Close project /
+ * Sign-out items.
+ * ---------------------------------------------------------------- */
+.golgi-navbar-avatar-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    /* Gradient ring via the "double-background" trick:
+     *   padding-box → solid white fill behind the avatar image
+     *                 (only visible if the image fails to load).
+     *   border-box  → the warm orange→red gradient paints the
+     *                 transparent 2 px border area.
+     * Same #FE9626 → #FD353A palette as the welcome-CTA conic
+     * spinner above, so the avatar ring reads as part of the
+     * same brand-warm-accent family.
+     */
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background:
+        linear-gradient(#ffffff, #ffffff) padding-box,
+        linear-gradient(135deg,
+            #FE9626 0%, #FE8225 45%, #FD353A 100%) border-box;
+    cursor: pointer;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: box-shadow 120ms ease, transform 120ms ease,
+                filter 120ms ease;
+}
+.golgi-navbar-avatar-btn:hover {
+    box-shadow: 0 0 0 3px rgba(254, 130, 37, 0.22);
+    filter: brightness(1.04);
+}
+.golgi-navbar-avatar-btn:active {
+    transform: scale(0.96);
+}
+.golgi-navbar-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Navbar user chip — horizontal "username + avatar" pill that
+ * mirrors `.golgi-welcome-userchip` but tuned for the light
+ * navbar background (dark text, grey hairline border, white
+ * surface) instead of the dark welcome canvas. The dropdown
+ * VMenu inside opens the same Profile + Sign-out card as the
+ * welcome chip via the shared `show_user_menu` v_model. */
+.golgi-navbar-userchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px 4px 14px;
+    background: #ffffff;
+    /* Darker hairline (was #e3e3e6) so the chip outline is
+     * actually visible against the white navbar background.
+     * Earlier #e3e3e6 was almost invisible. */
+    border: 1px solid #9ca3af;
+    border-radius: 999px;
+    cursor: pointer;
+    color: #1f2024;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    transition: background 120ms ease,
+                border-color 120ms ease,
+                box-shadow 120ms ease;
+}
+.golgi-navbar-userchip:hover {
+    background: #f7f7f8;
+    border-color: #6b7280;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.golgi-navbar-userchip:active {
+    transform: translateY(1px);
+}
+.golgi-navbar-userchip-name {
+    color: #1f2024;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.golgi-navbar-userchip-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    /* Same warm orange→red gradient ring as the prior
+     * standalone navbar-avatar-btn so the chip still reads as
+     * part of the brand-warm-accent family. */
+    border: 2px solid transparent;
+    background:
+        linear-gradient(#ffffff, #ffffff) padding-box,
+        linear-gradient(135deg,
+            #FE9626 0%, #FE8225 45%, #FD353A 100%) border-box;
+    flex: 0 0 auto;
+}
+/* User menu — card-style dropdown with a large centred avatar
+ * + name + email up top, a full-width Profile row below, and a
+ * full-width Sign-out pill button at the bottom. Modelled
+ * after the screenshot the user shared. The container is
+ * mounted via Vuetify's VMenu so we override the menu's overlay
+ * padding and let our own card own the visual. */
+.golgi-user-menu-card {
+    width: 280px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 22px 18px 18px;
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.12),
+        0 2px 6px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+/* Vuetify's `.v-overlay__content` wraps any VMenu content in a
+ * card with its own elevation + background. We want OUR
+ * `.golgi-user-menu-card` to be the only visible card, so
+ * strip Vuetify's wrapper styling when it contains our card. */
+.v-overlay__content:has(> .golgi-user-menu-card) {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 16px !important;
+    padding: 0 !important;
+}
+.golgi-user-menu-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 4px;
+}
+.golgi-user-menu-avatar-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    /* Same warm orange→red ring as the navbar avatar so the
+     * identity element reads as continuous across the click. */
+    border: 2px solid transparent;
+    background:
+        linear-gradient(#ffffff, #ffffff) padding-box,
+        linear-gradient(135deg,
+            #FE9626 0%, #FE8225 45%, #FD353A 100%) border-box;
+    margin-bottom: 6px;
+}
+.golgi-user-menu-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2024;
+    text-align: center;
+    line-height: 1.2;
+}
+.golgi-user-menu-email {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    word-break: break-all;
+}
+.golgi-user-menu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 0;
+    border-top: 1px solid #ececef;
+}
+.golgi-user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    background: #ffffff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #1f2024;
+    transition: background 0.12s ease;
+    text-align: left;
+}
+.golgi-user-menu-item:hover {
+    background: #f4f5f7;
+}
+.golgi-user-menu-icon {
+    color: #6b7280;
+    flex: 0 0 auto;
+}
+.golgi-user-menu-footer {
+    border-top: 1px solid #ececef;
+    padding-top: 12px;
+}
+.golgi-user-menu-signout {
+    width: 100%;
+    padding: 10px 16px;
+    background: #ffffff;
+    border: 1px solid #e3e3e6;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2024;
+    transition: background 0.12s ease,
+                border-color 0.12s ease;
+}
+.golgi-user-menu-signout:hover {
+    background: rgba(226, 75, 74, 0.06);
+    border-color: rgba(226, 75, 74, 0.40);
+    color: #e24b4a;
+}
+
+/* Auth + Profile dialog — 2-column row used for paired
+ * fields (first name + last name, country + institution). */
+.golgi-auth-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+}
+
+/* ----------------------------------------------------------------
+ * Login panel — minimal centred card.
+ *
+ *   ┌────────────────────────────────────┐
+ *   │   Welcome back!                    │
+ *   │   User Login                       │
+ *   │                                    │
+ *   │   ──────────────────────────────   │
+ *   │   Email                            │
+ *   │   ──────────────────────────────   │
+ *   │   Password                         │
+ *   │                                    │
+ *   │           [   Login   ]            │
+ *   │                                    │
+ *   │   Forgot Password   Cancel  Register
+ *   └────────────────────────────────────┘
+ *
+ * Two underline-styled VTextFields, pill Login button, bottom
+ * link row. Brand magma red for the greeting + accent on the
+ * Register link.
+ * ---------------------------------------------------------------- */
+.golgi-auth-card {
+    border-radius: 14px;
+}
+.golgi-auth-login {
+    padding: 36px 36px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.golgi-auth-greeting {
+    font-size: 30px;
+    font-weight: 600;
+    color: #e24b4a;
+    letter-spacing: -0.01em;
+    margin-bottom: 2px;
+}
+.golgi-auth-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 22px;
+}
+.golgi-auth-input {
+    margin-bottom: 14px;
+}
+.golgi-auth-error {
+    color: #e24b4a;
+    font-size: 12px;
+    margin-top: 4px;
+    min-height: 16px;
+}
+.golgi-auth-login-actions {
+    /* Cancel + Login as a horizontal button pair, centred under
+     * the inputs. Uses the app's standard primary / secondary
+     * button classes; we just upsize them here (roughly 2× the
+     * .golgi-btn-sm footprint) so the dialog's primary CTA
+     * feels appropriately weighty next to the underline inputs. */
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 22px;
+    margin-bottom: 22px;
+}
+.golgi-auth-login-actions .golgi-btn-primary,
+.golgi-auth-login-actions .golgi-btn-secondary {
+    /* Override `.golgi-btn-sm` padding so the login dialog's
+     * action buttons are noticeably larger than other dialogs'.
+     * Same min-width on both so Cancel + Login read as visually
+     * paired. */
+    padding: 12px 36px;
+    font-size: 15px;
+    min-width: 140px;
+}
+.golgi-auth-login-actions .golgi-btn-secondary {
+    padding: 11px 35px;
+}
+.golgi-auth-login-links {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 4px;
+}
+.golgi-auth-login-links .golgi-auth-link {
+    font-size: 12.5px;
+    color: #6b7280;
+    background: none;
+    border: none;
+    padding: 4px 2px;
+    cursor: pointer;
+}
+.golgi-auth-login-links .golgi-auth-link:hover {
+    color: #1f2024;
+}
+.golgi-auth-login-links .golgi-auth-link-accent {
+    color: #e24b4a;
+    font-weight: 600;
+}
+.golgi-auth-login-links .golgi-auth-link-accent:hover {
+    color: #c93f3e;
+}
+
+/* Profile dialog — refreshed layout.
+ *   - Wider card (max_width 620) so the inputs have room.
+ *   - Sections separated by a small uppercase header so the
+ *     three groups (Account / Personal / Affiliation /
+ *     Profile Image) read clearly.
+ *   - Two-column grid for paired fields, single-column "full
+ *     width" for Position. */
+.golgi-profile-card {
+    border-radius: 14px;
+}
+.golgi-profile-body {
+    padding: 28px 32px 16px !important;
+}
+.golgi-profile-intro {
+    margin-bottom: 18px;
+}
+/* Title row hosting the H3-style heading plus the (i) info-icon
+ * tooltip. The dialog used to have a paragraph intro below the
+ * title — that text now lives on the (i) hover, so this row
+ * absorbs the spacing the intro used to add. */
+.golgi-profile-title-row {
+    gap: 2px;
+    margin-bottom: 18px;
+}
+.golgi-profile-title-row .golgi-dialog-title {
+    margin-bottom: 0;
+}
+.golgi-profile-section {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+}
+.golgi-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 4px;
+}
+.golgi-profile-position {
+    margin-top: 14px;
+}
+
+/* Registration dialog — same sectioned layout as the Profile
+ * dialog but standalone so the two can drift independently
+ * later if needed. Outer padding mirrors the profile body. */
+.golgi-register-body {
+    padding: 28px 32px 16px !important;
+}
+.golgi-register-intro {
+    margin-bottom: 18px;
+}
+.golgi-register-divider {
+    margin: 18px 0 6px;
+}
+.golgi-register-error {
+    color: #e24b4a;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+/* Register-mode action row — keep the Cancel + Create-account
+ * buttons at the same visual weight and wide enough that the
+ * "Create account" label never wraps. Scoped to the auth card
+ * so other dialogs (close-confirm, delete, etc.) keep their
+ * natural-width buttons. */
+.golgi-auth-card .v-card-actions .golgi-btn-primary,
+.golgi-auth-card .v-card-actions .golgi-btn-secondary {
+    min-width: 140px;
+    padding: 7px 20px;
+    white-space: nowrap;
+}
+/* Sign-in mode-toggle link sits flush-left in the actions row;
+ * `flex-shrink: 0` keeps its label ("Already have an account?
+ * Sign in") on one line. */
+.golgi-auth-card .v-card-actions .golgi-auth-link {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Profile dialog — avatar widget on the left, controls on the
+ * right. Empty-state placeholder shares the same dimensions so
+ * the layout doesn't jump when the user clears their image. */
+.golgi-profile-avatar-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+.golgi-profile-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    background: #f6f6f8;
+    flex: 0 0 auto;
+}
+.golgi-profile-avatar-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+}
+.golgi-profile-avatar-controls {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+/* Auth-card avatar upload widget — small inline preview to the
+ * right of the file picker so the user sees what they just
+ * uploaded before submitting. */
+.golgi-auth-avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.golgi-auth-file {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.golgi-auth-avatar-preview {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    flex: 0 0 auto;
+}
+
+/* Welcome-view user identity — horizontal pill chip pinned to
+ * the top-right corner of `.golgi-welcome`. Outline-only:
+ * transparent fill, thin white border, white username text +
+ * small avatar on the right. Designed to sit cleanly on the
+ * dark animated welcome background without competing with the
+ * Create-project CTA or the project tiles. Clicking opens the
+ * same user menu as the navbar avatar (shared `show_user_menu`
+ * v_model). */
+.golgi-welcome > .golgi-welcome-userchip {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 6px 5px 14px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 999px;
+    cursor: pointer;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    transition: background 0.12s ease,
+                border-color 0.12s ease;
+}
+.golgi-welcome > .golgi-welcome-userchip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.75);
+}
+.golgi-welcome-userchip-name {
+    color: #ffffff;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.golgi-welcome-userchip-img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    flex: 0 0 auto;
+}
+
+/* ----------------------------------------------------------------
+ * Active-tab highlight in the navbar.
+ * Every navbar VBtn carries a Vue class binding that toggles
+ * `golgi-tab-active` when its own drawer / analysis-tab toggle
+ * is true. We override Vuetify's text-variant baseline with a
+ * subtle red wash + a bottom-rule so the active tab is obvious
+ * but doesn't compete with the actual primary CTAs.
+ * ---------------------------------------------------------------- */
+.golgi-tab-active.v-btn--variant-text {
+    color: #e24b4a !important;
+    background: rgba(226, 75, 74, 0.08);
+    box-shadow: inset 0 -2px 0 0 #e24b4a;
+    border-radius: 4px 4px 0 0;
+}
+
+/* ----------------------------------------------------------------
+ * Single-fiber tab — viewport band above the playground panel.
+ *
+ * Mirrors the Solve-tab integration trick: the viewport is
+ * absolute-positioned (escaping the flex column) so it can be
+ * placed anywhere inside .golgi-central, and the analysis area
+ * gets enough top padding to leave room for it. Same pattern as
+ * `.golgi-viewport.mode-grid-tl` + `.golgi-solve-grid` (see the
+ * Solve-grid block above) — that approach already proved
+ * reliable, so we reuse it instead of fighting flex sizing.
+ *
+ * Vars stay paired:
+ *   FIBER_BAND_H = 360px (viewport height)
+ *   FIBER_BAND_GAP = 28px (top padding above the panel)
+ * Update both together if either changes.
+ * ---------------------------------------------------------------- */
+.golgi-viewport.mode-fiber-band {
+    position: absolute !important;
+    /* Use the SAME centering pattern as `.golgi-analysis-panel`
+     * below (left/right inset + auto margins + matching
+     * max-width). Previous attempt used `width: min(1200px,
+     * calc(100% - 64px))` which produced slightly different
+     * pixel widths than the panel's `max-width: 1200px` inside
+     * an analysis-area with padding 32 px. Now both elements
+     * are bounded by `inset 32 px on either side + max-width:
+     * 1280 px + margin: auto` so they resolve to the same
+     * width. 1280 px (vs the old 1200) gives a bit more
+     * breathing room as requested. */
+    top: 24px;
+    left: 32px;
+    right: 32px;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 360px !important;
+    flex: none !important;
+    background: #ffffff;
+    border: 1px solid #e3e3e6;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    z-index: 5;
+}
+/* Analysis area in Single-fiber mode — bumps padding-top by the
+ * viewport-band height so the panel content (header, controls,
+ * pulse design, output tiles) starts BELOW the absolute viewport
+ * rather than underneath it (24 top-gap + 360 band + 28 gap). */
+.golgi-analysis-area.is-fiber-mode {
+    padding-top: 412px;
+    width: 1400px;
+}
+/* Constrain the playground panel to the same max-width as the
+ * viewport band so the page reads as a single 1280-px column
+ * (band on top, controls + outputs below). */
+.golgi-analysis-area.is-fiber-mode .golgi-analysis-panel {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Trajectory combobox — tabular numerals so "Branch X · Fiber
+ * N" items line up cleanly in the dropdown. */
+.golgi-fiber-sel-traj .v-list-item-title {
+    font-variant-numeric: tabular-nums;
+}
+/* Per-chip colour dot — small filled circle prefixed onto each
+ * selected-fiber chip. Background is set inline from the
+ * tab10-derived `item.raw.color` in the chip slot template, so
+ * the chip ↔ 3-D-trajectory mapping is unambiguous. */
+.golgi-fiber-chip-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    flex: 0 0 auto;
+    vertical-align: middle;
+}
+/* Per-branch tab strip rendered inside the VCombobox menu via
+ * the `prepend-item` slot. Compact density so the tab row
+ * doesn't dominate the dropdown; faint divider underneath
+ * before the items list starts. */
+.golgi-fiber-tab-strip {
+    border-bottom: 1px solid #eceef0;
+    background: #fafafb;
+    min-height: 36px;
+}
+.golgi-fiber-tab-strip .v-tab {
+    font-size: 11px;
+    min-height: 36px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+/* Result-picker row — appears under the Run button only when a
+ * batch sim produced 2+ results. Single dropdown switches the
+ * fiber whose Vm + waterfall plots are currently displayed. */
+.golgi-fiber-result-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+    background: #fafafb;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+}
+.golgi-fiber-result-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    flex: 0 0 auto;
+}
+.golgi-fiber-result-select {
+    min-width: 200px;
+    max-width: 320px;
+}
+
+/* ----------------------------------------------------------------
+ * Population tab — same band-on-top + centred-panel layout as
+ * Single fiber. Reuses the absolute-positioned viewport trick so
+ * the trame plotter sizes correctly (see mode-fiber-band notes
+ * above). Padding-top + max-width + auto margins mirror the
+ * fiber-mode rules above so both tabs feel like one design.
+ * ---------------------------------------------------------------- */
+.golgi-viewport.mode-pop-band {
+    /* Same centering recipe as mode-fiber-band: inset on
+     * both sides + max-width + auto margins resolves to the
+     * same width as the analysis-panel below. Relies on the
+     * `position: relative` we added on `.golgi-central` so
+     * this `position: absolute` is anchored to that container
+     * (matching the analysis-area's left/right edges) rather
+     * than escaping to an outer ancestor. */
+    position: absolute !important;
+    top: 24px;
+    left: 32px;
+    right: 32px;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 360px !important;
+    flex: none !important;
+    background: #ffffff;
+    border: 1px solid #e3e3e6;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    z-index: 5;
+}
+.golgi-analysis-area.is-pop-mode {
+    padding-top: 412px;
+}
+.golgi-analysis-area.is-pop-mode .golgi-analysis-panel {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Population panel layout. */
+.golgi-pop-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.golgi-pop-branches {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.golgi-pop-branch {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: #fafafb;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+}
+.golgi-pop-branch-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* `.golgi-pop-branch-swatch` was a coloured circle next to the
+ * branch label — removed by request. Per-row dots
+ * (`.golgi-pop-row-dot`) carry all the colour cues now. */
+.golgi-pop-branch-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2024;
+    flex: 1 1 auto;
+}
+/* Per-branch sum-of-fractions chip. `.is-ok` (green) when the
+ * row fractions sum to exactly 100 %; `.is-warn` (red) when they
+ * don't. The chip's label is recomputed reactively from
+ * pop_branch_types in the template (no server round-trip), so it
+ * tracks live as the user edits the fraction inputs. */
+.golgi-pop-sum {
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    flex: 0 0 auto;
+}
+.golgi-pop-sum.is-ok {
+    color: #166534;
+    background: #dcfce7;
+    border-color: #bbf7d0;
+}
+.golgi-pop-sum.is-warn {
+    color: #b91c1c;
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+.golgi-pop-types {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.golgi-pop-no-types {
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+    padding: 4px 0;
+}
+/* Per-type-row 4-col grid (model / mean / σ / fraction)
+ * plus a tight × button column. The model column gets 1.6fr so
+ * long names like MRG_INTERPOLATION don't truncate. */
+.golgi-pop-type-row {
+    display: grid;
+    /* dot | name | backend | model | mean | σ | fraction | × */
+    grid-template-columns:
+        16px
+        1.0fr 0.9fr 1.3fr 0.8fr 0.65fr 0.85fr 32px;
+    gap: 8px;
+    align-items: center;
+}
+.golgi-pop-row-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    flex: 0 0 auto;
+    justify-self: center;
+    align-self: center;
+    margin-bottom: 4px;
+}
+.golgi-pop-row-name,
+.golgi-pop-row-backend,
+.golgi-pop-row-model,
+.golgi-pop-row-num {
+    min-width: 0;
+}
+.golgi-pop-row-del {
+    height: 36px;
+    border: 1px solid #e3e3e6;
+    background: #ffffff;
+    border-radius: 4px;
+    color: #6b7280;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease,
+                border-color 0.12s ease;
+}
+.golgi-pop-row-del:hover {
+    background: #fdecec;
+    color: #e24b4a;
+    border-color: #f3b8b8;
+}
+.golgi-pop-controls {
+    display: grid;
+    grid-template-columns: 140px auto 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    background: #ffffff;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+}
+.golgi-pop-seed {
+    min-width: 0;
+}
+.golgi-pop-status {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+                  Consolas, monospace;
+    font-size: 12px;
+    color: #444;
+}
+.golgi-pop-kde {
+    background: #ffffff;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+    padding: 10px 12px;
+    /* Tile sizes itself to match the Plotly figure's own
+     * `height` (set by `_build_pop_kde_figure` based on whether
+     * the per-named-row subplot strip is present). `min-height`
+     * guarantees space for the Plotly mount point even when
+     * the figure hasn't fully settled — without it the
+     * `flex: 1 1 auto; min-height: 0` rule below could
+     * collapse the figure container to zero height on the
+     * first paint and the chart never lays out. */
+    min-height: 320px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;  /* anchor for the F2.3.a export button */
+}
+
+/* Cross-section-at-cuff-centre tile. Square-ish (uses Plotly's
+ * scaleanchor x/y for equal aspect), sits above the KDE.
+ * Layout matches the KDE tile so both feel like one section. */
+.golgi-pop-xsec-cuff {
+    background: #ffffff;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+    padding: 10px 12px;
+    /* Match the KDE tile — explicit min-height keeps Plotly's
+     * mount point sized so the figure has somewhere to draw. */
+    min-height: 420px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;  /* anchor for the F2.3.a export button */
+}
+.golgi-pop-xsec-cuff > div:not(h3) {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.golgi-pop-xsec-cuff h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.golgi-pop-kde > div:not(h3) {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.golgi-pop-kde h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+/* Population sim-row — tstop + CTA-style Run button laid out
+ * as a 2-col grid. tstop is a compact input; the Run CTA gets
+ * the rest of the row. Mirrors the Single-fiber `.golgi-fiber-
+ * sim-row` so both tabs feel consistent. */
+.golgi-pop-sim-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 12px;
+    align-items: end;
+    padding: 10px 12px;
+    background: #fafafb;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+}
+.golgi-pop-run-cta {
+    margin: 0;
+}
+.golgi-pop-pulse-section {
+    margin-top: 4px;
+}
+
+/* Population-sim outputs — cross-section + per-fiber heatmap +
+ * waterfall, all stacked. Cross-section is a square-aspect
+ * scatter tile that shows where each fiber sits in the (x, y)
+ * plane and whether it activated. The per-fiber tiles below
+ * reuse the existing `.golgi-fiber-output-grid` rules so the
+ * Population and Single-fiber layouts look the same. */
+.golgi-pop-results {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+}
+.golgi-pop-xsec-tile {
+    background: #ffffff;
+    border: 1px solid #ececef;
+    border-radius: 6px;
+    padding: 10px 12px;
+    min-height: 380px;
+    position: relative;  /* anchor for the F2.3.a export button */
+}
+.golgi-pop-xsec-tile h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* "Simulate" dropdown — list-item highlight when its
+ * corresponding sub-tab (FEM / single fiber / population) is the
+ * currently-open analysis tab. Same red wash as the navbar
+ * active-tab style so the umbrella button and the dropdown row
+ * agree visually. */
+.golgi-sim-menu .v-list-item.golgi-sim-menu-active {
+    background: rgba(226, 75, 74, 0.10);
+    color: #e24b4a;
+}
+.golgi-sim-menu {
+    min-width: 240px;
+    padding: 4px 0;
+}
+
+/* "File" dropdown — mirrors the Simulate dropdown styling. The
+ * Import sub-item carries `.golgi-file-menu-active` when its
+ * drawer is open so the row reads as the active File sub-tab.
+ * Save + Close project are one-shot actions, never active. */
+.golgi-file-menu .v-list-item.golgi-file-menu-active {
+    background: rgba(226, 75, 74, 0.10);
+    color: #e24b4a;
+}
+.golgi-file-menu {
+    min-width: 220px;
+    padding: 4px 0;
+}
+
+/* M47 — Import-wizard Step-1 source-type tiles. The reactive
+ * border / background colour binding lives in the :style attribute
+ * via Vue object syntax; static layout (flex sizing, padding, gap,
+ * rounding) lives here so the :style binding stays minimal and
+ * Vue's reactivity tracks only the colour + opacity changes. */
+.tile-source-pick {
+    flex: 1 1 0;
+    border-radius: 8px;
+    padding: 10px;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 120ms ease,
+                border-color 120ms ease,
+                opacity 120ms ease;
+}
