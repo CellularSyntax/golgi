@@ -179,8 +179,6 @@ def _cmd_replay(args) -> int:
     else:
         print(report.short_summary())
         if not report.ok:
-            if report.error:
-                print(f"  {report.error}")
             for s in report.stages:
                 if not s.matched:
                     print(f"  stage `{s.stage}` diverged:")
@@ -190,6 +188,99 @@ def _cmd_replay(args) -> int:
                                 f"    {f.name}: {f.note}"
                             )
     return 0 if report.ok else 1
+
+
+def _cmd_figure(args) -> int:
+    """Render a bundle's result figures to PNG, headless.
+
+    Hydrates the bundle's CACHED fibers + per-fibre lead field + the
+    cached threshold sweep (no FEM re-solve, no re-run) and calls the
+    same figure builders the GUI uses, so the output matches what the
+    bundle shows on import — the exact published numbers. Produces an
+    activation-threshold scatter (from sweeps/) and the Vₑ FEM slice
+    (from the config's slice_volume)."""
+    import shutil
+    import tempfile
+    src = Path(args.bundle).expanduser().resolve()
+    if not src.exists():
+        print(f"error: not found: {src}", file=sys.stderr)
+        return 1
+    tmp = None
+    if src.is_dir():
+        proj = src
+    else:
+        from golgi.projects import bundle as _bundle
+        tmp = Path(tempfile.mkdtemp(prefix="golgi_fig_"))
+        proj = tmp / "project"
+        try:
+            _bundle.import_study(src.read_bytes(), proj, owner_user_id=None)
+        except Exception as ex:                              # noqa: BLE001
+            print(f"error: import failed: {ex}", file=sys.stderr)
+            shutil.rmtree(tmp, ignore_errors=True)
+            return 2
+    out_dir = (Path(args.out).expanduser().resolve()
+               if args.out else Path.cwd())
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stem = args.name or proj.name
+    written: list[Path] = []
+    try:
+        import numpy as _np
+        import plotly.graph_objects as _go
+        import plotly.io as _pio
+        from golgi.projects import sweep_cache as _swc
+        from golgi.pipeline import fem_layout as _fl
+
+        # The result figures read the cached sweep + slice_volume
+        # directly off disk — no geometry hydration / FEM re-solve.
+
+        def _save(fig_dict, suffix, w, h):
+            p = out_dir / f"{stem}_{suffix}.png"
+            _pio.write_image(_go.Figure(fig_dict), str(p),
+                             format="png", width=w, height=h, scale=2)
+            written.append(p)
+
+        # 1) Activation-threshold scatter from the cached sweep.
+        result = _swc.load_latest(proj)
+        if result is not None:
+            from golgi.figures.recruitment import (
+                build_threshold_scatter_figure,
+            )
+            _save(build_threshold_scatter_figure(result),
+                  "thresholds", 1100, 750)
+        else:
+            print("  (no sweep cache — threshold figure skipped)",
+                  flush=True)
+
+        # 2) Vₑ FEM slice heatmap from the config's slice_volume.
+        sv = None
+        for c in (_fl.enumerate_configs(proj) or []):
+            cand = _fl.config_dir(proj, c["id"]) / "slice_volume.npz"
+            if cand.is_file():
+                sv = cand
+                break
+        if sv is not None:
+            from golgi.figures.fem import _build_fem_slice_figure
+            d = _np.load(sv, allow_pickle=True)
+            sd = {k: d[k] for k in
+                  ("x", "y", "z", "Ve", "Ex", "Ey", "Ez")
+                  if k in d.files}
+            _save(_build_fem_slice_figure(sd), "fem_slice", 900, 820)
+        else:
+            print("  (no slice_volume — FEM figure skipped)", flush=True)
+    except Exception as ex:                                  # noqa: BLE001
+        print(f"error: {type(ex).__name__}: {ex}", file=sys.stderr)
+        traceback.print_exc()
+        return 2
+    finally:
+        if tmp is not None:
+            shutil.rmtree(tmp, ignore_errors=True)
+    for p in written:
+        print(f"✓ wrote {p}", flush=True)
+    if not written:
+        print("no figures produced (bundle had no cached results)",
+              file=sys.stderr)
+        return 3
+    return 0
 
 
 def _cmd_compute_worker(args) -> int:
@@ -276,7 +367,8 @@ def dispatch(argv: list[str]) -> "int | None":
     if not argv or argv[0] in ("--port", "-p", "--help", "-h"):
         return None
     if argv[0] not in (
-        "export", "import", "replay", "compute-worker", "fetch-tissue-db",
+        "export", "import", "replay", "figure", "compute-worker",
+        "fetch-tissue-db",
     ):
         return None
     parser = argparse.ArgumentParser(
@@ -366,6 +458,27 @@ def dispatch(argv: list[str]) -> "int | None":
         help="Emit the full ReplayReport as JSON on stdout.",
     )
     p_replay.set_defaults(func=_cmd_replay)
+
+    p_figure = subs.add_parser(
+        "figure",
+        help=(
+            "Render a bundle's result figures (activation-threshold "
+            "scatter + Vₑ FEM slice) to PNG, headless."
+        ),
+    )
+    p_figure.add_argument(
+        "bundle",
+        help="Bundle .golgi/.zip path OR an already-extracted dir.",
+    )
+    p_figure.add_argument(
+        "--out", default="",
+        help="Output directory for the PNGs (default: cwd).",
+    )
+    p_figure.add_argument(
+        "--name", default="",
+        help="Filename stem for the PNGs (default: project name).",
+    )
+    p_figure.set_defaults(func=_cmd_figure)
 
     # F4.2 — remote-side compute worker (called by the SLURM
     # sbatch wrapper or directly for debugging).
