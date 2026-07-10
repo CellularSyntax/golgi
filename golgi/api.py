@@ -504,7 +504,7 @@ class Study:
         if not meta_path.is_file():
             return []
         try:
-            blob = json.loads(meta_path.read_text())
+            blob = json.loads(meta_path.read_text(encoding="utf-8"))
         except Exception:                                # noqa: BLE001
             return []
         return list(blob.get("designs", []) or [])
@@ -517,7 +517,7 @@ class Study:
         if not meta_path.is_file():
             return []
         try:
-            blob = json.loads(meta_path.read_text())
+            blob = json.loads(meta_path.read_text(encoding="utf-8"))
         except Exception:                                # noqa: BLE001
             return []
         return list(blob.get("configs", []) or [])
@@ -1221,7 +1221,7 @@ class Study:
         if not path.is_file():
             return
         try:
-            blob = json.loads(path.read_text())
+            blob = json.loads(path.read_text(encoding="utf-8"))
         except Exception:                                # noqa: BLE001
             return
         for k, v in blob.items():

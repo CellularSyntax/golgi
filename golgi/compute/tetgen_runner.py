@@ -53,7 +53,7 @@ def _parse_skipped_face_file(path: Path) -> list[tuple[int, int, int]]:
     if not path.is_file():
         return triples
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             lines = f.readlines()
     except Exception:
         return triples
@@ -98,7 +98,7 @@ def _parse_skipped_node_file(path: Path) -> dict[int, tuple[float, float, float]
     if not path.is_file():
         return coords
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             lines = f.readlines()
     except Exception:
         return coords
@@ -337,7 +337,7 @@ def _surgical_drop_fill_by_coords(
 
 
 def main(payload_path: str) -> None:
-    cfg = TetGenPayload.deserialize(json.load(open(payload_path)))
+    cfg = TetGenPayload.deserialize(json.load(open(payload_path, encoding="utf-8")))
     plc = pv.read(str(cfg.plc_path))
     print(
         f"[runner] {plc.n_points:,} pts, {plc.n_faces:,} tris",

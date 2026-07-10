@@ -159,11 +159,11 @@ class SlurmJobRunner:
         payload_path = job_dir / "payload.json"
         payload_path.write_text(
             json.dumps(self._serialize_payload(req), default=str),
-        )
+         encoding="utf-8")
         wrapper_path = job_dir / "sbatch_wrapper.sh"
         wrapper_path.write_text(
             self._render_wrapper(req, payload_path, job_dir),
-        )
+         encoding="utf-8")
         wrapper_path.chmod(0o755)
 
         # 2. Submit.
@@ -262,7 +262,7 @@ class SlurmJobRunner:
         if not outputs_path.is_file():
             return {}
         try:
-            data = json.loads(outputs_path.read_text())
+            data = json.loads(outputs_path.read_text(encoding="utf-8"))
         except Exception:                                # noqa: BLE001
             return {}
         return dict(data.get("outputs", {}))
@@ -353,7 +353,7 @@ class SlurmJobRunner:
             # Tail any new lines from the slurm-out file.
             if out_file.is_file():
                 try:
-                    with open(out_file, "r") as f:
+                    with open(out_file, "r", encoding="utf-8") as f:
                         lines = f.readlines()
                     for line in lines[tailed_lines:]:
                         on_line(line.rstrip("\n"))
@@ -367,7 +367,7 @@ class SlurmJobRunner:
                 # Flush any final lines.
                 if out_file.is_file():
                     try:
-                        with open(out_file, "r") as f:
+                        with open(out_file, "r", encoding="utf-8") as f:
                             lines = f.readlines()
                         for line in lines[tailed_lines:]:
                             on_line(line.rstrip("\n"))

@@ -136,7 +136,7 @@ def _build_nerve_only_mesh(pts, tris, lc_target):
     _tmp_msh = OUT / "_nerve_only_tmp.msh"
     _nodes_arr = np.asarray(_nodes, dtype=np.float64)
     _elems_arr = np.asarray(_elems, dtype=np.int64)
-    with open(_tmp_msh, "w") as _f:
+    with open(_tmp_msh, "w", encoding="utf-8") as _f:
         _f.write("$MeshFormat\n2.2 0 8\n$EndMeshFormat\n")
         _f.write("$PhysicalNames\n1\n3 1 \"nerve\"\n$EndPhysicalNames\n")
         _f.write(f"$Nodes\n{len(_nodes_arr)}\n")
@@ -199,7 +199,7 @@ def main():
     if _SEED_CFG_PATH.exists():
         try:
             _seed_cfg = _FiberSeedConfig.deserialize(
-                json.loads(_SEED_CFG_PATH.read_text()),
+                json.loads(_SEED_CFG_PATH.read_text(encoding="utf-8")),
             )
         except Exception:
             _seed_cfg = _FiberSeedConfig()
@@ -253,7 +253,7 @@ def main():
         _mc_path = OUT / "mesh_config.json"
         if _mc_path.exists():
             try:
-                _mc = json.loads(_mc_path.read_text())
+                _mc = json.loads(_mc_path.read_text(encoding="utf-8"))
                 _lc_endo = float(_mc.get("lc_nerve", _lc_endo))
             except Exception:
                 pass
@@ -1070,7 +1070,7 @@ def main():
             "trunk_cap_area_m2": A_trunk,
             "branch_cap_areas_m2": A_branches,
         }
-        with open(OUT / "nerve_paths_caps.json", "w") as _fp:
+        with open(OUT / "nerve_paths_caps.json", "w", encoding="utf-8") as _fp:
             json.dump(_cap_info, _fp, indent=2)
         _say(f"  wrote cap metadata to nerve_paths_caps.json")
 

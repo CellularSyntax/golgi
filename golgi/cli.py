@@ -213,7 +213,7 @@ def _cmd_compute_worker(args) -> int:
         )
         return 1
     try:
-        payload = json.loads(payload_path.read_text())
+        payload = json.loads(payload_path.read_text(encoding="utf-8"))
     except Exception as ex:                              # noqa: BLE001
         print(f"error: payload not JSON: {ex}", file=sys.stderr)
         return 1
@@ -239,7 +239,7 @@ def _cmd_compute_worker(args) -> int:
         outputs_path = payload_path.parent / "outputs.json"
         outputs_path.write_text(json.dumps(
             {"return_code": 0, "outputs": {}}, indent=2,
-        ))
+        ), encoding="utf-8")
         print(f"[worker] noop payload — wrote {outputs_path}")
         return 0
     print(

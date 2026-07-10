@@ -353,7 +353,7 @@ def register(
                 "annotated_slices": [],
                 "files": files,
             }
-            with open(out_dir / "manifest.json", "w") as f:
+            with open(out_dir / "manifest.json", "w", encoding="utf-8") as f:
                 json.dump(manifest, f, indent=2)
             return {
                 "out_dir": out_dir,

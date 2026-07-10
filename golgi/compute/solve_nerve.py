@@ -322,7 +322,7 @@ def load_mesh_config(out_dir: Path) -> _MeshConfig:
     if not p.exists():
         return _MeshConfig()
     try:
-        with open(p) as f:
+        with open(p, encoding="utf-8") as f:
             return _MeshConfig.deserialize(json.load(f))
     except Exception:
         return _MeshConfig()
@@ -344,7 +344,7 @@ def load_electrode_config(
     deserialise the list as empty."""
     p = out_dir / "electrode_config.json"
     if p.exists():
-        with open(p) as f:
+        with open(p, encoding="utf-8") as f:
             ec = _ElectrodeConfig.deserialize(json.load(f))
         if comm.rank == 0:
             print(
@@ -803,7 +803,7 @@ def _emit_impedance_dc(
             "per_contact": per_contact,
             "per_pair": per_pair,
         }
-        with open(OUT / "impedance.json", "w") as f:
+        with open(OUT / "impedance.json", "w", encoding="utf-8") as f:
             _json.dump(out, f, indent=2)
         print(
             f"saved impedance.json ({len(per_contact)} contacts, "
@@ -1265,7 +1265,7 @@ def _emit_reciprocity_solves(
         manifest["I_test"] = float(I_TEST)
         manifest["ground_strategy"] = "outer_muscle"
         manifest["schema"] = "v1"
-        with open(manifest_path, "w") as f:
+        with open(manifest_path, "w", encoding="utf-8") as f:
             _json.dump(manifest, f, indent=2)
         print(
             f"saved recording/manifest.json "
@@ -1485,7 +1485,7 @@ def _emit_reciprocity_solves_ci(
             "perineurium_contact_impedance": True,
             "Rs_peri_ohm_m2": float(peri_rs),
             "n_contacts": int(n_done),
-        }, indent=2))
+        }, indent=2), encoding="utf-8")
         print(f"[reciprocity] CI two-field done: {n_done} contact(s) → "
               f"{rec_dir}", flush=True)
 

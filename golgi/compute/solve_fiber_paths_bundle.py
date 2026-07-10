@@ -119,7 +119,7 @@ def _build_nerve_only_mesh(pts, tris, lc_target, tmp_msh_path):
 
     _nodes_arr = np.asarray(_nodes, dtype=np.float64)
     _elems_arr = np.asarray(_elems, dtype=np.int64)
-    with open(tmp_msh_path, "w") as _f:
+    with open(tmp_msh_path, "w", encoding="utf-8") as _f:
         _f.write("$MeshFormat\n2.2 0 8\n$EndMeshFormat\n")
         _f.write(
             "$PhysicalNames\n1\n3 1 \"fascicle\"\n$EndPhysicalNames\n"
@@ -663,7 +663,7 @@ def main():
     if _SEED_CFG_PATH.exists():
         try:
             seed_cfg = _FiberSeedConfig.deserialize(
-                json.loads(_SEED_CFG_PATH.read_text()),
+                json.loads(_SEED_CFG_PATH.read_text(encoding="utf-8")),
             )
         except Exception:
             seed_cfg = _FiberSeedConfig()
@@ -682,7 +682,7 @@ def main():
         _say(f"ERROR: fascicle_manifest.json not found at "
              f"{_manifest_path}")
         raise SystemExit(2)
-    manifest = json.loads(_manifest_path.read_text())
+    manifest = json.loads(_manifest_path.read_text(encoding="utf-8"))
     fascicles = manifest["fascicles"]
     lc_target = float(manifest.get("lc_target", 2.0e-4))
     _say(f"manifest: {len(fascicles)} fascicle(s), "
@@ -789,7 +789,7 @@ def main():
         }
         (OUT / "nerve_paths_caps.json").write_text(
             json.dumps(caps_info, indent=2),
-        )
+         encoding="utf-8")
         _say("wrote nerve_paths_caps.json")
 
     _say("done")

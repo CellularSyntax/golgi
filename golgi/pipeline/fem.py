@@ -336,7 +336,7 @@ async def run_fem_solve(ctx: PipelineContext) -> None:
         )
         (out_dir / "mesh_config.json").write_text(
             json.dumps(mesh_cfg.serialize(), indent=2),
-        )
+         encoding="utf-8")
 
         # ---- 2. electrode_config.json ----
         # Patch enumeration:
@@ -690,7 +690,7 @@ async def run_fem_solve(ctx: PipelineContext) -> None:
             )
             (c_dir / "electrode_config.json").write_text(
                 json.dumps(elec_cfg.serialize(), indent=2),
-            )
+             encoding="utf-8")
             # F3.2c fix: per-config mesh_config carries THIS
             # config's parent design's R_ci / R_co / L_cuff —
             # NOT the active design's. Without this, solve_nerve
@@ -702,7 +702,7 @@ async def run_fem_solve(ctx: PipelineContext) -> None:
                     _per_design_mesh_cfg.serialize(),
                     indent=2,
                 ),
-            )
+             encoding="utf-8")
 
             # F3.2: nerve_paths_fibers.npz lives alongside the
             # MESH (in d_dir) — shared across every config bound
@@ -1077,7 +1077,7 @@ async def run_fem_solve(ctx: PipelineContext) -> None:
             _imp_path = active_design_dir / "impedance.json"
             if _imp_path.is_file():
                 _imp_data = _json.loads(
-                    _imp_path.read_text(),
+                    _imp_path.read_text(encoding="utf-8"),
                 )
                 _all_imp = dict(
                     getattr(state, "fem_impedance", {}) or {},

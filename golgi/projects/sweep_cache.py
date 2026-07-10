@@ -114,29 +114,29 @@ def save_sweep(
         "n_sims_total": int(result.n_sims_total),
         "request": result.request.serialize(),
     }
-    json_path.write_text(json.dumps(manifest, indent=2))
+    json_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     paths["json"] = json_path
 
     if write_csvs:
         if result.activated is not None:
             rec_csv = out / f"{stem}_recruitment.csv"
-            rec_csv.write_text(recruitment_to_csv(result))
+            rec_csv.write_text(recruitment_to_csv(result), encoding="utf-8")
             paths["recruitment_csv"] = rec_csv
             hm_csv = out / f"{stem}_activation_heatmap.csv"
-            hm_csv.write_text(activation_heatmap_to_csv(result))
+            hm_csv.write_text(activation_heatmap_to_csv(result), encoding="utf-8")
             paths["heatmap_csv"] = hm_csv
         if result.thresholds_uA is not None:
             thr_csv = out / f"{stem}_thresholds.csv"
-            thr_csv.write_text(threshold_to_csv(result))
+            thr_csv.write_text(threshold_to_csv(result), encoding="utf-8")
             paths["threshold_csv"] = thr_csv
 
     # Mark this as the latest run. When tagged with a cid, write
     # BOTH the global latest.txt (for backward-compat callers that
     # only know about the project-wide latest) AND a per-cid
     # `latest_<cid>.txt` for F3.2 selectivity loading.
-    (out / "latest.txt").write_text(sha)
+    (out / "latest.txt").write_text(sha, encoding="utf-8")
     if _cid_safe:
-        (out / f"latest_{_cid_safe}.txt").write_text(sha)
+        (out / f"latest_{_cid_safe}.txt").write_text(sha, encoding="utf-8")
 
     return paths
 
@@ -149,7 +149,7 @@ def list_sweeps(out_dir: Path) -> list[dict]:
     rows: list[dict] = []
     for json_path in out.glob("sweep_*.json"):
         try:
-            m = json.loads(json_path.read_text())
+            m = json.loads(json_path.read_text(encoding="utf-8"))
         except Exception:                                    # noqa: BLE001
             continue
         m["json_path"] = str(json_path)
@@ -175,7 +175,7 @@ def load_sweep(
     if not (npz_path.exists() and json_path.exists()):
         return None
     try:
-        manifest = json.loads(json_path.read_text())
+        manifest = json.loads(json_path.read_text(encoding="utf-8"))
         req = SweepRequest.deserialize(manifest.get("request", {}))
         with np.load(npz_path, allow_pickle=True) as z:
             kw: dict = {
@@ -225,7 +225,7 @@ def load_latest(out_dir: Path) -> Optional[SweepResult]:
     latest = out / "latest.txt"
     if not latest.is_file():
         return None
-    sha = latest.read_text().strip()
+    sha = latest.read_text(encoding="utf-8").strip()
     if not sha:
         return None
     return load_sweep(out_dir, sha)
@@ -252,7 +252,7 @@ def load_latest_for_config(
     marker = out / f"latest_{_cid_safe}.txt"
     if not marker.is_file():
         return None
-    sha = marker.read_text().strip()
+    sha = marker.read_text(encoding="utf-8").strip()
     if not sha:
         return None
     # Reconstruct via the same loader path but with the cid-tagged
@@ -263,7 +263,7 @@ def load_latest_for_config(
     if not (npz_path.exists() and json_path.exists()):
         return None
     try:
-        manifest = json.loads(json_path.read_text())
+        manifest = json.loads(json_path.read_text(encoding="utf-8"))
         req = SweepRequest.deserialize(
             manifest.get("request", {}),
         )

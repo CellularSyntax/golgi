@@ -2443,7 +2443,7 @@ def _init_static_assets() -> None:
             f"running without app stylesheet",
             flush=True,
         )
-        _GOLGI_CSS_FILE.write_text("")
+        _GOLGI_CSS_FILE.write_text("", encoding="utf-8")
 
     # Single-source asset copies — each guarded by .exists() so a
     # partial install doesn't crash startup.
@@ -2475,14 +2475,14 @@ def _init_static_assets() -> None:
 
     # Inline JS bundles — content lives in the *_JS string
     # constants above; materialised here so trame can serve them.
-    _GOLGI_JS_FILE.write_text(_GOLGI_LOADER_JS)
-    _GOLGI_EXPORT_FILE.write_text(_GOLGI_EXPORT_JS)
-    _GOLGI_STUDY_UPLOAD_FILE.write_text(_GOLGI_STUDY_UPLOAD_JS)
-    _GOLGI_UCT_UPLOAD_FILE.write_text(_GOLGI_UCT_UPLOAD_JS)
-    _GOLGI_UCT_CROPPER_FILE.write_text(_GOLGI_UCT_CROPPER_JS)
-    _GOLGI_UCT_SCALEBAR_FILE.write_text(_GOLGI_UCT_SCALEBAR_JS)
-    _GOLGI_VANTA_FILE.write_text(_GOLGI_VANTA_JS)
-    _GOLGI_AUTORELOAD_FILE.write_text(_GOLGI_AUTORELOAD_JS)
+    _GOLGI_JS_FILE.write_text(_GOLGI_LOADER_JS, encoding="utf-8")
+    _GOLGI_EXPORT_FILE.write_text(_GOLGI_EXPORT_JS, encoding="utf-8")
+    _GOLGI_STUDY_UPLOAD_FILE.write_text(_GOLGI_STUDY_UPLOAD_JS, encoding="utf-8")
+    _GOLGI_UCT_UPLOAD_FILE.write_text(_GOLGI_UCT_UPLOAD_JS, encoding="utf-8")
+    _GOLGI_UCT_CROPPER_FILE.write_text(_GOLGI_UCT_CROPPER_JS, encoding="utf-8")
+    _GOLGI_UCT_SCALEBAR_FILE.write_text(_GOLGI_UCT_SCALEBAR_JS, encoding="utf-8")
+    _GOLGI_VANTA_FILE.write_text(_GOLGI_VANTA_JS, encoding="utf-8")
+    _GOLGI_AUTORELOAD_FILE.write_text(_GOLGI_AUTORELOAD_JS, encoding="utf-8")
 
     # Prune any older content-hashed vanta + autoreload copies
     # so the static directory doesn't accumulate dead files
@@ -2614,7 +2614,7 @@ def _list_projects(owner_user_id: int | None = None) -> list[dict]:
         if not manifest_path.exists():
             continue
         try:
-            data = json.loads(manifest_path.read_text())
+            data = json.loads(manifest_path.read_text(encoding="utf-8"))
         except Exception:
             continue
         # Access filter — show the project if the current user
@@ -2787,7 +2787,7 @@ def _compute_project_status(proj: dict) -> list[dict]:
     if pdir is not None and pdir.is_dir():
         try:
             manifest = json.loads(
-                (pdir / "project.json").read_text()
+                (pdir / "project.json").read_text(encoding="utf-8")
             )
             ui_state = dict(manifest.get("ui_state") or {})
         except Exception as _ex:
@@ -3181,7 +3181,7 @@ def _create_project(name: str,
             int(owner_user_id) if owner_user_id is not None else None
         ),
     }
-    (pdir / "project.json").write_text(json.dumps(manifest, indent=2))
+    (pdir / "project.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return pdir
 
 
@@ -3197,7 +3197,7 @@ def _activate_project(pdir: Path) -> dict:
     mf = pdir / "project.json"
     if mf.exists():
         try:
-            return json.loads(mf.read_text())
+            return json.loads(mf.read_text(encoding="utf-8"))
         except Exception:
             return {}
     return {}
@@ -3215,7 +3215,7 @@ def _read_manifest(pdir: Path) -> dict:
     if not mf.exists():
         return {}
     try:
-        return json.loads(mf.read_text())
+        return json.loads(mf.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
@@ -3241,7 +3241,7 @@ def _write_manifest(pdir: Path, **updates) -> dict:
     # downstream readers can rely on it.
     if "shared_user_ids" not in data:
         data["shared_user_ids"] = []
-    mf.write_text(json.dumps(data, indent=2))
+    mf.write_text(json.dumps(data, indent=2), encoding="utf-8")
     return data
 
 
@@ -4271,7 +4271,7 @@ def _compute_fiber_branch_summary(
     ]
     if caps_json_path.exists():
         try:
-            caps = json.loads(caps_json_path.read_text())
+            caps = json.loads(caps_json_path.read_text(encoding="utf-8"))
             centroids = np.asarray(
                 caps.get("branch_cap_centroids_m", []),
                 dtype=np.float64,
@@ -4334,7 +4334,7 @@ def _classify_fibers_by_branch(
     if not caps_json_path.exists():
         return np.zeros(n, dtype=int), 1
     try:
-        caps = json.loads(caps_json_path.read_text())
+        caps = json.loads(caps_json_path.read_text(encoding="utf-8"))
         centroids = np.asarray(
             caps.get("branch_cap_centroids_m", []),
             dtype=np.float64,
@@ -4915,7 +4915,7 @@ from golgi import actions as _actions  # noqa: E402
 def write_msh22(out_path: Path, nodes: np.ndarray,
                   elems: np.ndarray, tags: np.ndarray) -> None:
     """Write a gmsh v2.2 .msh file with per-tet physical tags."""
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write("$MeshFormat\n2.2 0 8\n$EndMeshFormat\n")
         f.write("$PhysicalNames\n5\n")
         for _id, _name in [
@@ -6612,7 +6612,7 @@ def build_app(port: int) -> None:
     _sigma_saved: dict = {}
     if _sigma_path.exists():
         try:
-            _sigma_saved = json.loads(_sigma_path.read_text())
+            _sigma_saved = json.loads(_sigma_path.read_text(encoding="utf-8"))
         except Exception:
             _sigma_saved = {}
     for _k, _v in DEFAULT_SIGMA.items():
@@ -10886,7 +10886,7 @@ def build_app(port: int) -> None:
         if not path.exists():
             return
         try:
-            saved = json.loads(path.read_text())
+            saved = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
             return
         _elec_sync_guard["loading"] = True
@@ -11032,7 +11032,7 @@ def build_app(port: int) -> None:
                     },
                 }
             path = out_dir / f"{eid}.json"
-            path.write_text(json.dumps(cfg, indent=2))
+            path.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
             live_files.add(path.name)
         # Sweep orphan files: any *.json in the dir not produced
         # by this pass (e.g. removed electrode) gets deleted, so
@@ -13300,7 +13300,7 @@ def build_app(port: int) -> None:
         # status line and no progress bar.
         try:
             _manifest_peek = json.loads(
-                (pdir / "project.json").read_text(),
+                (pdir / "project.json").read_text(encoding="utf-8"),
             )
         except Exception:
             _manifest_peek = {}

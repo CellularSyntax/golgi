@@ -353,7 +353,7 @@ def _compute_axial_paths_for_bundle(
     }
     (out_dir / "nerve_paths_caps.json").write_text(
         json.dumps(caps_info, indent=2),
-    )
+     encoding="utf-8")
 
 
 async def run_generate_fibers(ctx: PipelineContext) -> None:
@@ -563,7 +563,7 @@ async def run_generate_fibers(ctx: PipelineContext) -> None:
                 "lc_target": 2.0e-4,
                 "bundle_id": _bundle.get("bundle_id", ""),
             }, indent=2),
-        )
+         encoding="utf-8")
         _on_line(
             f"# fascicle_manifest.json written "
             f"({len(_manifest_entries)} fascicles)"
@@ -585,7 +585,7 @@ async def run_generate_fibers(ctx: PipelineContext) -> None:
         )
     (out_dir / "nerve_paths_seed_config.json").write_text(
         json.dumps(seed_cfg.serialize(), indent=2),
-    )
+     encoding="utf-8")
 
     # Subprocess plumbing is only needed for the streamlines
     # path. In axial mode the compute runs in-process so we

@@ -111,7 +111,7 @@ class LocalSubprocessRunner:
         if payload_path is not None:
             payload_path.parent.mkdir(parents=True, exist_ok=True)
             payload = self._serialize_payload(req)
-            payload_path.write_text(json.dumps(payload, default=str))
+            payload_path.write_text(json.dumps(payload, default=str), encoding="utf-8")
 
         argv = list(self._build_argv(req))
         if payload_path is not None:

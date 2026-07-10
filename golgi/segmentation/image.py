@@ -304,7 +304,7 @@ def compress_dicom_series_to_nifti(
     try:
         sidecar_path.write_text(
             _json.dumps(sidecar_data, indent=2),
-        )
+         encoding="utf-8")
     except OSError:
         pass
 
@@ -741,7 +741,7 @@ def load_stack(path: str | Path) -> Stack:
                     import json as _json
                     try:
                         meta = _json.loads(
-                            sidecar.read_text(),
+                            sidecar.read_text(encoding="utf-8"),
                         )
                         win = meta.get("display_window")
                         if (

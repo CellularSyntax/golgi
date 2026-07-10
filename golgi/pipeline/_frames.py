@@ -112,7 +112,7 @@ def ensure_fibers_in_cuff_frame(
         caps_path = out_dir / "nerve_paths_caps.json"
         if caps_path.exists():
             try:
-                caps = json.loads(caps_path.read_text())
+                caps = json.loads(caps_path.read_text(encoding="utf-8"))
                 if not bool(caps.get("frame_is_cuff", False)):
                     def _xform_pt(v):
                         arr = np.asarray(
@@ -141,7 +141,7 @@ def ensure_fibers_in_cuff_frame(
                     caps["frame_is_cuff"] = True
                     caps_path.write_text(
                         json.dumps(caps, indent=2),
-                    )
+                     encoding="utf-8")
                     _say(
                         f"  ✓ migrated caps_json centroids "
                         f"raw → cuff "

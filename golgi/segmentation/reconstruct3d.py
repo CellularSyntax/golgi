@@ -2644,7 +2644,7 @@ def list_bundles(uct_dir: Path | str) -> list[dict]:
         if not manifest_path.is_file():
             continue
         try:
-            with open(manifest_path) as f:
+            with open(manifest_path, encoding="utf-8") as f:
                 manifest = _json.load(f)
         except (OSError, ValueError):
             continue
@@ -2760,7 +2760,7 @@ def load_bundle(
         raise FileNotFoundError(
             f"No manifest.json under {bdir}",
         )
-    with open(manifest_path) as f:
+    with open(manifest_path, encoding="utf-8") as f:
         manifest = _json.load(f)
     if manifest.get("kind") != BUNDLE_KIND:
         raise ValueError(

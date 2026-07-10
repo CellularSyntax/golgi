@@ -30,7 +30,7 @@ def register(
             (Path(active_project_out_dir())
              / "conductivities.json").write_text(
                 json.dumps(cfg, indent=2),
-            )
+             encoding="utf-8")
         except Exception:
             pass
         # Clear the "✓ Conductivities updated" chip from the

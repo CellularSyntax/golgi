@@ -199,7 +199,7 @@ def load_cuff_presets(preset_dir) -> dict:
         return out
     for p in sorted(d.glob("*.json")):
         try:
-            out[p.stem] = json.loads(p.read_text())
+            out[p.stem] = json.loads(p.read_text(encoding="utf-8"))
         except Exception as ex:
             print(
                 f"[cuff_designer] failed to load {p.name}: {ex}",

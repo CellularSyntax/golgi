@@ -192,8 +192,8 @@ def _fill_nan_per_fiber(Ve, lens):
 def run_ci_solve(sample_dir, inject_A: float = 1.0) -> dict:
     comm = MPI.COMM_WORLD
     d = Path(sample_dir)
-    mc = json.loads((d / "mesh_config.json").read_text())
-    ec = json.loads((d / "electrode_config.json").read_text())
+    mc = json.loads((d / "mesh_config.json").read_text(encoding="utf-8"))
+    ec = json.loads((d / "electrode_config.json").read_text(encoding="utf-8"))
     sp = float(mc.get("sigma_peri") or SIG_PERI)
     Rs = (float(mc["peri_thk_m"]) / sp
           if mc.get("perineurium_ci") and mc.get("peri_thk_m") else None)
@@ -410,7 +410,7 @@ def run_ci_solve(sample_dir, inject_A: float = 1.0) -> dict:
                  E_xsec=np.asarray(np.stack(E_xsec_cols, 1), np.float32),
                  contact_ids=np.array([t - TAG_CONTACT_BASE for t in contact_tags]))
         info["xsec_Ve_saved"] = True
-    (d / "ci_solve_info.json").write_text(json.dumps(info, indent=2))
+    (d / "ci_solve_info.json").write_text(json.dumps(info, indent=2), encoding="utf-8")
     return info
 
 

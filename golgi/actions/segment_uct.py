@@ -2139,7 +2139,7 @@ def register(
         }
         json_path = uct_dir / "segmentation.json"
         try:
-            with open(json_path, "w") as f:
+            with open(json_path, "w", encoding="utf-8") as f:
                 json.dump(payload, f, indent=2)
         except Exception as ex:                       # noqa: BLE001
             with state:
@@ -2206,7 +2206,7 @@ def register(
         if not json_path.is_file():
             return
         try:
-            with open(json_path) as f:
+            with open(json_path, encoding="utf-8") as f:
                 payload = json.load(f)
         except Exception as ex:                       # noqa: BLE001
             with state:
@@ -3212,7 +3212,7 @@ def register(
                 "annotated_slices": _annotated_indices(),
                 "files": files,
             }
-            with open(out_dir / "manifest.json", "w") as f:
+            with open(out_dir / "manifest.json", "w", encoding="utf-8") as f:
                 json.dump(manifest, f, indent=2)
             # M13 Phase 1 — per-surface mesh quality diagnostics.
             # M14 Phase 2 — inter-surface diagnostics (pairwise
@@ -3233,7 +3233,7 @@ def register(
                 }
                 with open(
                     out_dir / "mesh_diagnostics.json", "w",
-                ) as f:
+                 encoding="utf-8") as f:
                     json.dump(diagnostics, f, indent=2)
             except Exception as ex:                     # noqa: BLE001
                 traceback.print_exc()

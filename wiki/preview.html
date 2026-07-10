@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>golgi wiki — local preview</title>
+<!-- GitHub-faithful styling + GFM rendering + KaTeX math + Mermaid (loaded from CDN; needs internet) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@5/lib/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .topbar { background: #24292f; color: #fff; padding: 8px 16px; font-size: 14px; position: sticky; top: 0; z-index: 5; }
+  .topbar b { color: #fff; }
+  .topbar .cur { color: #9ecbff; }
+  .layout { display: flex; align-items: flex-start; }
+  .sidebar { width: 300px; flex: 0 0 300px; box-sizing: border-box; padding: 20px 22px;
+             border-right: 1px solid #d0d7de; background: #f6f8fa; position: sticky; top: 37px;
+             height: calc(100vh - 37px); overflow: auto; }
+  .sidebar.markdown-body { font-size: 14px; }
+  .sidebar.markdown-body ul { margin-top: 4px; }
+  .main { flex: 1; min-width: 0; }
+  .content { padding: 32px 48px; max-width: 1012px; box-sizing: border-box; margin: 0 auto; }
+  .footer { padding: 8px 48px 40px; max-width: 1012px; margin: 0 auto; color: #57606a; font-size: 13px; }
+  .mermaid { background: #fff; text-align: center; margin: 16px 0; }
+  .err { color: #cf222e; padding: 24px; border: 1px solid #ffd7d5; background: #fff8f8; border-radius: 6px; }
+  @media (max-width: 800px) { .sidebar { display: none; } .content, .footer { padding-left: 20px; padding-right: 20px; } }
+</style>
+</head>
+<body>
+  <div class="topbar">📖 golgi wiki — <b>local preview</b> &nbsp;·&nbsp; viewing: <span class="cur" id="cur">Home</span>
+    &nbsp;·&nbsp; <span style="color:#8b949e">not GitHub — links &amp; Mermaid emulated</span></div>
+  <div class="layout">
+    <nav class="sidebar markdown-body" id="sidebar"></nav>
+    <div class="main">
+      <article class="content markdown-body" id="content"></article>
+      <footer class="footer markdown-body" id="footer"></footer>
+    </div>
+  </div>
+
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: "default" });
+
+  // KaTeX math ($…$ inline, $$…$$ block) — registered before any parse so it
+  // tokenizes math before marked can mangle the LaTeX. GitHub renders the same
+  // $$ syntax natively on the published wiki.
+  if (typeof markedKatex === "function") {
+    marked.use(markedKatex({ throwOnError: false }));
+  }
+
+  // Rewrite GitHub-wiki-style links ([text](Page-Name)) to in-app hash routes.
+  function rewriteLinks(scope) {
+    scope.querySelectorAll("a[href]").forEach(a => {
+      const h = a.getAttribute("href");
+      if (!h) return;
+      if (/^[a-z]+:/i.test(h)) { a.target = "_blank"; return; } // http:, mailto:, ...
+      if (h.startsWith("#")) return;                            // in-page anchor
+      if (h.startsWith("/") || h.includes("/")) return;         // path into the main repo
+      const page = h.split("#")[0].replace(/\.md$/, "");        // strip .md + fragment
+      if (page) a.setAttribute("href", "#" + page);
+    });
+  }
+
+  // Turn ```mermaid fenced blocks into rendered diagrams.
+  function renderMermaid(scope) {
+    scope.querySelectorAll("code.language-mermaid").forEach(code => {
+      const div = document.createElement("div");
+      div.className = "mermaid";
+      div.textContent = code.textContent;
+      const pre = code.closest("pre");
+      if (pre) pre.replaceWith(div); else code.replaceWith(div);
+    });
+    const nodes = scope.querySelectorAll(".mermaid");
+    if (nodes.length) { try { mermaid.run({ nodes }); } catch (e) { console.warn(e); } }
+  }
+
+  async function loadInto(elId, file, isPage) {
+    const el = document.getElementById(elId);
+    try {
+      const r = await fetch(file, { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      el.innerHTML = marked.parse(await r.text());
+      rewriteLinks(el);
+      renderMermaid(el);
+      return true;
+    } catch (e) {
+      if (isPage) {
+        el.innerHTML = '<div class="err"><b>Could not load <code>' + file + '</code></b> (' + e.message +
+          ').<br><br>Open this file through a <b>local web server</b> (browsers block <code>fetch()</code> on <code>file://</code>):' +
+          '<pre>cd wiki\npython3 -m http.server 8000</pre>then visit <code>http://localhost:8000/preview.html</code>.' +
+          '<br>Also check the page name exists in this folder.</div>';
+      }
+      return false;
+    }
+  }
+
+  function route() {
+    const page = decodeURIComponent(location.hash.replace(/^#/, "")) || "Home";
+    document.getElementById("cur").textContent = page;
+    document.title = "golgi wiki — " + page;
+    loadInto("content", page + ".md", true).then(() => window.scrollTo(0, 0));
+  }
+
+  window.addEventListener("hashchange", route);
+  loadInto("sidebar", "_Sidebar.md", false);
+  loadInto("footer", "_Footer.md", false);
+  route();
+</script>
+</body>
+</html>

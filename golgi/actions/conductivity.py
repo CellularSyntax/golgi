@@ -71,7 +71,7 @@ def register(
                 (Path(get_out_dir())
                  / "conductivities.json").write_text(
                     json.dumps(cfg, indent=2),
-                )
+                 encoding="utf-8")
             except Exception as ex:                      # noqa: BLE001
                 write_ok = False
                 print(
