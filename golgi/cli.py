@@ -190,21 +190,28 @@ def _cmd_replay(args) -> int:
     return 0 if report.ok else 1
 
 
-def _cmd_figure(args) -> int:
-    """Render a bundle's result figures to PNG, headless.
+def _bundle_stem(p: Path) -> str:
+    """Filename stem for a bundle: strip .golgi / .zip / .golgi.zip."""
+    n = p.name
+    for suf in (".golgi.zip", ".golgi", ".zip"):
+        if n.endswith(suf):
+            return n[: -len(suf)]
+    return p.stem
 
-    Hydrates the bundle's CACHED fibers + per-fibre lead field + the
-    cached threshold sweep (no FEM re-solve, no re-run) and calls the
-    same figure builders the GUI uses, so the output matches what the
-    bundle shows on import — the exact published numbers. Produces an
-    activation-threshold scatter (from sweeps/) and the Vₑ FEM slice
-    (from the config's slice_volume)."""
+
+def _render_one_bundle(src: Path, out_dir: Path, stem: str) -> list:
+    """Render ONE bundle's/project's result figures to PNG. Reads the
+    cached threshold sweep (sweeps/) + config slice_volume directly off
+    disk — no geometry hydration, no FEM re-solve, no re-run — and calls
+    the same figure builders the GUI uses. Returns the written paths."""
     import shutil
     import tempfile
-    src = Path(args.bundle).expanduser().resolve()
-    if not src.exists():
-        print(f"error: not found: {src}", file=sys.stderr)
-        return 1
+    import numpy as _np
+    import plotly.graph_objects as _go
+    import plotly.io as _pio
+    from golgi.projects import sweep_cache as _swc
+    from golgi.pipeline import fem_layout as _fl
+
     tmp = None
     if src.is_dir():
         proj = src
@@ -212,34 +219,15 @@ def _cmd_figure(args) -> int:
         from golgi.projects import bundle as _bundle
         tmp = Path(tempfile.mkdtemp(prefix="golgi_fig_"))
         proj = tmp / "project"
-        try:
-            _bundle.import_study(src.read_bytes(), proj, owner_user_id=None)
-        except Exception as ex:                              # noqa: BLE001
-            print(f"error: import failed: {ex}", file=sys.stderr)
-            shutil.rmtree(tmp, ignore_errors=True)
-            return 2
-    out_dir = (Path(args.out).expanduser().resolve()
-               if args.out else Path.cwd())
-    out_dir.mkdir(parents=True, exist_ok=True)
-    stem = args.name or proj.name
+        _bundle.import_study(src.read_bytes(), proj, owner_user_id=None)
     written: list[Path] = []
     try:
-        import numpy as _np
-        import plotly.graph_objects as _go
-        import plotly.io as _pio
-        from golgi.projects import sweep_cache as _swc
-        from golgi.pipeline import fem_layout as _fl
-
-        # The result figures read the cached sweep + slice_volume
-        # directly off disk — no geometry hydration / FEM re-solve.
-
         def _save(fig_dict, suffix, w, h):
             p = out_dir / f"{stem}_{suffix}.png"
             _pio.write_image(_go.Figure(fig_dict), str(p),
                              format="png", width=w, height=h, scale=2)
             written.append(p)
 
-        # 1) Activation-threshold scatter from the cached sweep.
         result = _swc.load_latest(proj)
         if result is not None:
             from golgi.figures.recruitment import (
@@ -248,10 +236,9 @@ def _cmd_figure(args) -> int:
             _save(build_threshold_scatter_figure(result),
                   "thresholds", 1100, 750)
         else:
-            print("  (no sweep cache — threshold figure skipped)",
+            print(f"  ({stem}: no sweep cache — threshold skipped)",
                   flush=True)
 
-        # 2) Vₑ FEM slice heatmap from the config's slice_volume.
         sv = None
         for c in (_fl.enumerate_configs(proj) or []):
             cand = _fl.config_dir(proj, c["id"]) / "slice_volume.npz"
@@ -266,20 +253,72 @@ def _cmd_figure(args) -> int:
                   if k in d.files}
             _save(_build_fem_slice_figure(sd), "fem_slice", 900, 820)
         else:
-            print("  (no slice_volume — FEM figure skipped)", flush=True)
-    except Exception as ex:                                  # noqa: BLE001
-        print(f"error: {type(ex).__name__}: {ex}", file=sys.stderr)
-        traceback.print_exc()
-        return 2
+            print(f"  ({stem}: no slice_volume — FEM skipped)", flush=True)
     finally:
         if tmp is not None:
             shutil.rmtree(tmp, ignore_errors=True)
-    for p in written:
-        print(f"✓ wrote {p}", flush=True)
-    if not written:
-        print("no figures produced (bundle had no cached results)",
+    return written
+
+
+def _cmd_figure(args) -> int:
+    """Render a bundle's result figures to PNG, headless — the exact
+    published numbers (activation-threshold scatter + Vₑ FEM slice).
+
+    `bundle` is a .golgi/.zip, an already-extracted project dir, OR a
+    DIRECTORY OF BUNDLES (renders every .golgi/.zip inside — batch mode
+    for the whole deposit)."""
+    src = Path(args.bundle).expanduser().resolve()
+    if not src.exists():
+        print(f"error: not found: {src}", file=sys.stderr)
+        return 1
+    out_dir = (Path(args.out).expanduser().resolve()
+               if args.out else Path.cwd())
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Batch: a directory that is NOT itself an extracted project but
+    # contains bundle files → render each.
+    is_project = src.is_dir() and (src / "project.json").is_file()
+    batch: list[Path] = []
+    if src.is_dir() and not is_project:
+        batch = sorted(
+            p for p in src.iterdir()
+            if p.is_file() and (
+                p.name.endswith(".golgi.zip")
+                or p.suffix.lower() in (".golgi", ".zip")
+            )
+        )
+
+    total: list[Path] = []
+    if batch:
+        print(f"batch: {len(batch)} bundle(s) in {src}", flush=True)
+        for b in batch:
+            print(f"── {b.name} ──", flush=True)
+            try:
+                w = _render_one_bundle(b, out_dir, _bundle_stem(b))
+            except Exception as ex:                          # noqa: BLE001
+                print(f"  error: {type(ex).__name__}: {ex}",
+                      file=sys.stderr)
+                w = []
+            for p in w:
+                print(f"  ✓ {p.name}", flush=True)
+            total += w
+    else:
+        stem = args.name or (src.name if src.is_dir()
+                             else _bundle_stem(src))
+        try:
+            total = _render_one_bundle(src, out_dir, stem)
+        except Exception as ex:                              # noqa: BLE001
+            print(f"error: {type(ex).__name__}: {ex}", file=sys.stderr)
+            traceback.print_exc()
+            return 2
+        for p in total:
+            print(f"✓ wrote {p}", flush=True)
+
+    if not total:
+        print("no figures produced (no cached results found)",
               file=sys.stderr)
         return 3
+    print(f"\n{len(total)} figure(s) → {out_dir}", flush=True)
     return 0
 
 
@@ -468,7 +507,10 @@ def dispatch(argv: list[str]) -> "int | None":
     )
     p_figure.add_argument(
         "bundle",
-        help="Bundle .golgi/.zip path OR an already-extracted dir.",
+        help=(
+            "A bundle .golgi/.zip, an already-extracted project dir, "
+            "OR a directory of bundles (renders every one — batch)."
+        ),
     )
     p_figure.add_argument(
         "--out", default="",

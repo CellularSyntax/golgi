@@ -308,9 +308,19 @@ def _ingest_stored_thresholds(proj: Path, fid: str) -> str:
     if fpath is None:
         return "skip: bundle has no fibers"
     n_bundle = int(len(np.load(fpath)["path_lengths"]))
-    if int(fidx.max()) >= n_bundle:
-        return (f"skip: stored fiber index {int(fidx.max())} >= bundle "
-                f"fibers {n_bundle} — fiber-set mismatch")
+    if col == "json":
+        # A handful of representative validation points (dog-VNS A/B/C)
+        # mapped onto the first fibres — a subset, not the whole set.
+        if int(fidx.max()) >= n_bundle:
+            return (f"skip: validation points ({int(fidx.max()) + 1}) "
+                    f"exceed bundle fibers ({n_bundle})")
+    elif len(fidx) != n_bundle:
+        # Per-fibre population sweeps must align 1:1 with the bundle's
+        # fibres — a count mismatch means the thresholds were computed
+        # on a DIFFERENT fibre generation, so refuse rather than write
+        # results indexed against the wrong fibres.
+        return (f"skip: fiber-set mismatch — stored {len(fidx)} fibres, "
+                f"bundle {n_bundle} (different fibre generation)")
     # Save project-wide (cid=None) so the bare `sweep_<sha>.npz` +
     # global latest.txt are what the GUI's load_latest() reads on
     # import. A cid-tagged file is written under a `latest_<cid>.txt`
