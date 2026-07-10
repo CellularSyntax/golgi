@@ -14,7 +14,10 @@ requires-python = ">=3.10"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
 authors = [
+    { name = "David Lung" },
     { name = "Yuting Jia" },
+    { name = "Andrea Moro" },
+    { name = "Matteo Fachino" },
     { name = "Max Haberbusch", email = "max.haberbusch@meduniwien.ac.at" },
 ]
 # NOTE (PEP 639 / setuptools >= 77): the SPDX `license` expression above
