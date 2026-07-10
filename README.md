@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/golgi_static_one_line.png" alt="golgi" width="520">
+  <img src="docs/golgi_static_one_line.png" alt="golgi" width="300">
 </p>
 
 <p align="center">
@@ -240,4 +240,4 @@ golgi stands on an all-open scientific stack:
 | Data & auth | [SQLAlchemy](https://www.sqlalchemy.org/) · [bcrypt](https://github.com/pyca/bcrypt) |
 
 Inspired by and complementary to the open peripheral-nerve modeling community —
-[ASCENT](https://github.com/wmglab-duke/ascent) and NRV.
+[ASCENT](https://github.com/wmglab-duke/ascent) and [NRV](https://github.com/nrv-framework/NRV).
