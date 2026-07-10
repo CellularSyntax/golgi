@@ -179,6 +179,8 @@ def _cmd_replay(args) -> int:
     else:
         print(report.short_summary())
         if not report.ok:
+            if report.error:
+                print(f"  {report.error}")
             for s in report.stages:
                 if not s.matched:
                     print(f"  stage `{s.stage}` diverged:")

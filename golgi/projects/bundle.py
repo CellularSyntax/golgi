@@ -653,6 +653,8 @@ def import_study(
             # extracts safely with `extract` API but we want a
             # belt-and-braces check since the bundle came from
             # an external party.
+            if name.endswith("/"):
+                continue
             if (".." in Path(name).parts
                     or name.startswith("/")
                     or "\\" in name):

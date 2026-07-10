@@ -151,7 +151,8 @@ def _extract_to_tmp(zip_path: Path) -> Path:
         for name in zf.namelist():
             # Same defensive arcname check as
             # bundle.import_study.
-            if (".." in Path(name).parts
+            if (name.endswith("/")
+                    or ".." in Path(name).parts
                     or name.startswith("/")
                     or "\\" in name):
                 continue
