@@ -756,6 +756,97 @@ class Study:
             ),
         }
 
+    def load_cached_geometry(self) -> dict:
+        """Hydrate the in-memory ctx.geom from a project's cached
+        fibers + per-fiber FEM lead field ON DISK, WITHOUT re-solving.
+
+        `run_sweep` reads `geom.fiber_paths_Ve` (per-fiber extracellular
+        potential) and `geom.fiber_paths_raw` from the live context, not
+        from disk. For a project that was built in a PREVIOUS session
+        (e.g. a staged bundle, or a Duke-pipeline study) those live
+        arrays are empty, so a sweep can't run without first re-tracing
+        fibers + re-solving the FEM. This loads them straight from the
+        cached `nerve_paths_fibers.npz` (per-design) + `paths_Ve.npz`
+        (per-config) instead — the same split-by-`path_lengths` layout
+        the pipeline writes.
+
+        Returns {n_fibers, n_ve_fibers, fiber_src, ve_src}."""
+        import numpy as _np
+        from golgi.pipeline import fem_layout as _fl
+        geom = self._geom
+        pdir = self._project_dir
+
+        def _split(flat, lens):
+            out, off = [], 0
+            for L in lens:
+                n = int(L)
+                out.append(_np.asarray(flat[off:off + n]).copy())
+                off += n
+            return out
+
+        # ---- fibers: designs/<eid>/nerve_paths_fibers.npz, else root ----
+        fiber_src = None
+        cand = [pdir / "nerve_paths_fibers.npz"]
+        dsg = pdir / "designs"
+        if dsg.is_dir():
+            cand += [
+                d / "nerve_paths_fibers.npz"
+                for d in sorted(dsg.iterdir()) if d.is_dir()
+            ]
+        n_fibers = 0
+        for fp in cand:
+            if not fp.is_file():
+                continue
+            d = _np.load(fp, allow_pickle=True)
+            paths = _split(d["paths_flat"], d["path_lengths"])
+            geom.fiber_paths_raw = paths
+            geom.fiber_branch_idx = _np.zeros(len(paths), dtype=_np.int32)
+            geom.fiber_n_branches = 1
+            geom.fibers_in_cuff_frame = bool(
+                "frame_is_cuff" in d.files
+                and int(d["frame_is_cuff"]) == 1
+            )
+            n_fibers = len(paths)
+            fiber_src = str(fp)
+            break
+
+        # ---- per-fiber field: configs/<cid>/paths_Ve.npz ----
+        ve_src = None
+        cfgs = _fl.enumerate_configs(pdir)
+        cfg_ids = [c["id"] for c in cfgs] if cfgs else []
+        active = str(getattr(self._state, "active_config_id", "") or "")
+        order = ([active] if active in cfg_ids else []) + [
+            c for c in cfg_ids if c != active
+        ]
+        n_ve = 0
+        for cid in order:
+            pv_path = _fl.config_dir(pdir, cid) / "paths_Ve.npz"
+            if not pv_path.is_file():
+                continue
+            pv = _np.load(pv_path, allow_pickle=True)
+            lens = pv["path_lengths"]
+            geom.fiber_paths_Ve = _split(pv["Ve_flat"], lens)
+            geom.fiber_paths_Ez = (
+                _split(pv["Ez_flat"], lens)
+                if "Ez_flat" in pv.files else None
+            )
+            geom.fiber_paths_for_Ve = (
+                _split(pv["paths_flat"], lens)
+                if "paths_flat" in pv.files else None
+            )
+            n_ve = len(geom.fiber_paths_Ve)
+            ve_src = str(pv_path)
+            try:
+                self._state.active_config_id = cid
+            except Exception:                                # noqa: BLE001
+                pass
+            break
+
+        return {
+            "n_fibers": n_fibers, "n_ve_fibers": n_ve,
+            "fiber_src": fiber_src, "ve_src": ve_src,
+        }
+
     def run_sweep(self, request) -> object:
         """Run a parameter sweep (F2.1 `SweepRequest`).
         Returns the `SweepResult`; also writes it into the

@@ -149,6 +149,11 @@ _SUBDIRS: tuple[str, ...] = (
                      # without it a bundle ships the recordings but
                      # not the field solution it came from.
     "sims",          # F3.2 per-design sim caches (fiber + pop)
+    "sweeps",        # F2.1 threshold / recruitment sweep cache
+                     # (sweep_<sha>.npz + .json + CSVs + latest.txt).
+                     # Without it a bundle can't surface the
+                     # activation-threshold results in the Sweep tab
+                     # on import — the reviewer would have to re-run.
     "fem",           # legacy F3.1 layout (kept for back-compat
                      # with bundles exported between F3.1 and
                      # F3.2a — copied if present, ignored
@@ -653,8 +658,6 @@ def import_study(
             # extracts safely with `extract` API but we want a
             # belt-and-braces check since the bundle came from
             # an external party.
-            if name.endswith("/"):
-                continue
             if (".." in Path(name).parts
                     or name.startswith("/")
                     or "\\" in name):

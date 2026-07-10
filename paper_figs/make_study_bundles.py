@@ -37,7 +37,10 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(
+    "/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/"
+    "Fenics_tests"
+)
 sys.path.insert(0, str(ROOT))
 
 from golgi.projects import bundle as _bundle      # noqa: E402
@@ -160,6 +163,66 @@ def _sha256_file(p: Path) -> str:
     return h.hexdigest()
 
 
+def _ensure_threshold_sweep(proj: Path) -> str:
+    """Compute + cache an activation-threshold sweep on `proj` so the
+    exported bundle surfaces thresholds in the GUI's Sweep tab on import
+    (via <project>/sweeps/). Idempotent: skips if a sweep cache already
+    exists. Needs NEURON/pyfibers — returns a status string; on any
+    failure (no NEURON, no fibers/FEM on disk) it logs and returns the
+    reason so the bundle still exports, just without cached thresholds.
+
+    The sweep runs one MRG threshold bisection per cached fiber at a
+    representative myelinated diameter. To reproduce the paper's per-
+    class (A/B/C) validation numbers, widen this to a population with
+    the validation diameters (see validate_dogvns_native.py DIAMS)."""
+    if (proj / "sweeps" / "latest.txt").is_file() or list(
+        proj.glob("sweeps/sweep_*.npz")
+    ):
+        return "cached (already present)"
+    try:
+        import golgi
+        from golgi.jobs.schemas import SweepRequest
+    except Exception as ex:                                  # noqa: BLE001
+        return f"skip: golgi import failed ({ex})"
+    try:
+        s = golgi.Study.open(proj)
+    except Exception as ex:                                  # noqa: BLE001
+        return f"skip: could not open project ({ex})"
+    try:
+        info = s.load_cached_geometry()
+        if not info.get("n_fibers") or not info.get("n_ve_fibers"):
+            return (
+                f"skip: no cached fibers/field "
+                f"(fibers={info.get('n_fibers')}, "
+                f"Ve={info.get('n_ve_fibers')})"
+            )
+        # Representative A-fibre diameter (7.8 µm, matches the dog-VNS
+        # validation's A class); the sweep amplitude bracket is wide
+        # enough to bisect any myelinated threshold.
+        try:
+            s._state.update({
+                "fiber_diameter_um": 7.8,
+                "fiber_model": "MRG_INTERPOLATION",
+            })
+        except Exception:                                    # noqa: BLE001
+            pass
+        s.run_sweep(SweepRequest(
+            mode="threshold",
+            bisect_lo_mA=0.001,
+            bisect_hi_mA=20.0,
+            bisect_tol_uA=10.0,
+            model_source="single_fiber",
+        ))
+        return f"ok ({info['n_fibers']} fibers)"
+    except Exception as ex:                                  # noqa: BLE001
+        return f"skip: sweep failed ({type(ex).__name__}: {ex})"
+    finally:
+        try:
+            s.close()
+        except Exception:                                    # noqa: BLE001
+            pass
+
+
 def _export_one(spec: dict) -> dict | None:
     fid, name, mode = spec["id"], spec["name"], spec["mode"]
     if mode == "skip":
@@ -181,6 +244,11 @@ def _export_one(spec: dict) -> dict | None:
         proj.mkdir(parents=True, exist_ok=True)
         spec["build"](src, proj)
         _write_project_json(proj, name)
+
+    # Cache an activation-threshold sweep so the bundle shows thresholds
+    # in the GUI on import (needs NEURON; skips cleanly if unavailable).
+    _sw = _ensure_threshold_sweep(proj)
+    print(f"    threshold sweep: {_sw}", flush=True)
 
     out_zip = DEPOSIT / f"{fid}.golgi.zip"
     print(f"  export {fid} ← {proj.relative_to(ROOT)} …", flush=True)
