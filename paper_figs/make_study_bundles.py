@@ -176,13 +176,48 @@ def _sha256_file(p: Path) -> str:
 # placeholder; set it to the contact the bundle's cfg_01 actually solves
 # before the final deposit. 4a dog-VNS + 4c Bucksot use validation-table
 # formats (not per-fibre) and are handled separately / left uncached.
-STORED_THR: dict[str, tuple[str, int]] = {
-    "fig05_swine_cervical_vagus": ("thr_pop_swine.npz", 0),
-    "fig06_human_cervical_vagus": ("thr_pop_human.npz", 0),
-    "fig07_rabbit_branching": ("rabbit_branch_thr.npz", 0),
-    "fig08_human_scb_branching": ("new_human_tripole_thr.npz", 0),
+# col is an int contact column, "best" (pick the config the figure
+# highlights = argmax SCB−trunk selectivity, TARGET branch 1), or "json"
+# (the dog-VNS validation table: 4 per-class thresholds).
+STORED_THR: dict[str, tuple[str, object]] = {
+    "fig04a_dogvns_validation": ("data/validate_dogvns_native.json",
+                                 "json"),
+    "fig04c_bucksot_validation": (
+        "_intermediate/bucksot/thr_circ.npz", "bucksot"),
+    "fig05_swine_cervical_vagus": ("data/thr_pop_swine.npz", 0),
+    "fig06_human_cervical_vagus": ("data/thr_pop_human.npz", 0),
+    "fig07_rabbit_branching": ("data/rabbit_branch_thr.npz", "best"),
+    "fig08_human_scb_branching": ("data/new_human_tripole_thr.npz",
+                                  "best"),
 }
-DATA_DIR = ROOT / "paper_figs" / "out" / "data"
+OUT_DIR = ROOT / "paper_figs" / "out"
+_SCB_BRANCH = 1                                    # TARGET in the figs
+
+
+def _best_config_col(thr2d, branch) -> int:
+    """Pick the config column the selectivity figures highlight: the one
+    maximising (SCB% − trunk%) over amplitude, exactly like
+    new_human_selectivity_fig.analyse (iop = argmax(Ron − Roff))."""
+    import numpy as np
+    fin = thr2d[np.isfinite(thr2d)]
+    if fin.size == 0:
+        return 0
+    amps = np.logspace(np.log10(max(fin.min(), 50.0)),
+                       np.log10(fin.max()), 160)
+    on = np.asarray(branch) == _SCB_BRANCH
+    off = ~on
+    best_j, best_si = 0, -1e18
+    for j in range(thr2d.shape[1]):
+        col = thr2d[:, j]
+        con, cof = col[on], col[off]
+        Ron = np.array([np.mean(np.isfinite(con) & (con <= a))
+                        for a in amps])
+        Roff = np.array([np.mean(np.isfinite(cof) & (cof <= a))
+                         for a in amps])
+        si = float(np.max(Ron - Roff))
+        if si > best_si:
+            best_si, best_j = si, j
+    return best_j
 
 
 def _ingest_stored_thresholds(proj: Path, fid: str) -> str:
@@ -195,7 +230,7 @@ def _ingest_stored_thresholds(proj: Path, fid: str) -> str:
     if ent is None:
         return "no stored-threshold mapping (validation-table figure)"
     fname, col = ent
-    src = DATA_DIR / fname
+    src = OUT_DIR / fname
     if not src.is_file():
         return f"skip: stored file missing ({src.name})"
     try:
@@ -205,31 +240,69 @@ def _ingest_stored_thresholds(proj: Path, fid: str) -> str:
         from golgi.pipeline import fem_layout as _fl
     except Exception as ex:                                  # noqa: BLE001
         return f"skip: import failed ({ex})"
-    try:
-        d = np.load(src, allow_pickle=True)
-        thr = np.asarray(d["thr_uA"], dtype=np.float64)
-        if thr.ndim == 2:
-            col = min(col, thr.shape[1] - 1)
-            thr = thr[:, col]
-        fidx = np.asarray(d["fiber_idx"], dtype=np.int64)
-        diam = np.asarray(d["diameter_um"], dtype=np.float64)
-        bidx = np.asarray(
-            d["branch_idx"] if "branch_idx" in d.files
-            else np.zeros(len(fidx)), dtype=np.int32,
-        )
-        types = ([str(x) for x in d["type_label"]]
-                 if "type_label" in d.files else [])
-    except Exception as ex:                                  # noqa: BLE001
-        return f"skip: could not read {fname} ({ex})"
+    col_desc = str(col)
+    if col == "json":
+        # dog-VNS validation table → one point per fibre class.
+        import json as _json
+        try:
+            rows = _json.loads(src.read_text())["thresholds"]
+        except Exception as ex:                              # noqa: BLE001
+            return f"skip: could not read {fname} ({ex})"
+        thr = np.array([float(r["thr_mA"]) * 1000.0 for r in rows])
+        diam = np.array([float(r["diam_um"]) for r in rows])
+        types = [str(r.get("type", "")) for r in rows]
+        fidx = np.arange(len(rows), dtype=np.int64)
+        bidx = np.zeros(len(rows), dtype=np.int32)
+    elif col == "bucksot":
+        # Bucksot multifascicular validation: thr in mA, per-fibre with
+        # a `fascicle` index (used as branch), no explicit fiber_idx /
+        # model. One config's slice (circ); the bundle also carries the
+        # inverted config's FEM.
+        try:
+            d = np.load(src, allow_pickle=True)
+            thr = np.asarray(d["thr_mA"], dtype=np.float64) * 1000.0
+            diam = np.asarray(d["diam_um"], dtype=np.float64)
+            bidx = np.asarray(d["fascicle"], dtype=np.int32) \
+                if "fascicle" in d.files else np.zeros(len(thr), np.int32)
+            fidx = np.arange(len(thr), dtype=np.int64)
+            types = []
+        except Exception as ex:                              # noqa: BLE001
+            return f"skip: could not read {fname} ({ex})"
+    else:
+        try:
+            d = np.load(src, allow_pickle=True)
+            thr2d = np.asarray(d["thr_uA"], dtype=np.float64)
+            fidx = np.asarray(d["fiber_idx"], dtype=np.int64)
+            diam = np.asarray(d["diameter_um"], dtype=np.float64)
+            bidx = np.asarray(
+                d["branch_idx"] if "branch_idx" in d.files
+                else np.zeros(len(fidx)), dtype=np.int32,
+            )
+            types = ([str(x) for x in d["type_label"]]
+                     if "type_label" in d.files else [])
+            if thr2d.ndim == 2:
+                j = (_best_config_col(thr2d, bidx) if col == "best"
+                     else min(int(col), thr2d.shape[1] - 1))
+                thr = thr2d[:, j]
+                col_desc = f"col {j}" + (" (best SI)" if col == "best"
+                                         else "")
+            else:
+                thr = thr2d
+                col_desc = "col 0"
+        except Exception as ex:                              # noqa: BLE001
+            return f"skip: could not read {fname} ({ex})"
     # Fiber-count alignment against the bundle's cached fibers — refuse
     # to write a sweep indexed against a different fiber set.
     fpath = None
-    dsg = proj / "designs"
-    if dsg.is_dir():
-        for dd in sorted(dsg.iterdir()):
-            if (dd / "nerve_paths_fibers.npz").is_file():
-                fpath = dd / "nerve_paths_fibers.npz"
-                break
+    for sub in ("designs", "configs"):
+        root = proj / sub
+        if root.is_dir():
+            for dd in sorted(root.iterdir()):
+                if (dd / "nerve_paths_fibers.npz").is_file():
+                    fpath = dd / "nerve_paths_fibers.npz"
+                    break
+        if fpath is not None:
+            break
     if fpath is None and (proj / "nerve_paths_fibers.npz").is_file():
         fpath = proj / "nerve_paths_fibers.npz"
     if fpath is None:
@@ -257,7 +330,7 @@ def _ingest_stored_thresholds(proj: Path, fid: str) -> str:
     except Exception as ex:                                  # noqa: BLE001
         return f"skip: cache write failed ({ex})"
     n_act = int(np.isfinite(thr).sum())
-    return (f"ok ({len(fidx)} fibers from {fname} col {col}, "
+    return (f"ok ({len(fidx)} fibers from {fname} [{col_desc}], "
             f"{n_act} recruited ≤hi)")
 
 
