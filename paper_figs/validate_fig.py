@@ -7,7 +7,7 @@
 
 These are the two MRG fiber-model checks. The numerical solver checks now live with
 the field solver: the analytic monopole + COMSOL cross-validation are in the main
-integrated figure (fig_validation_full.py, panels a/b) and supp_comsol_validation.py.
+integrated figure (fig04_validation.py, panels a/b) and supp_comsol_validation.py.
 panel_fem / panel_dog below are retained for reuse by other figures.
 """
 from __future__ import annotations
@@ -130,7 +130,7 @@ def panel_render(ax):
 def main():
     # Foundations figure (supplementary): the two MRG fiber-model checks only.
     # The numerical solver checks (analytic monopole + COMSOL) now live with the field
-    # solver — main integrated figure (fig_validation_full.py) + supp_comsol_validation.py.
+    # solver — main integrated figure (fig04_validation.py) + supp_comsol_validation.py.
     # The system-level recruitment benchmarks (dog VNS, NRV LIFE, Bucksot) are in the
     # main-text integrated figure, which imports panel_dog above.
     plt.rcParams.update({"font.size": 11, "axes.labelsize": 11, "xtick.labelsize": 10,

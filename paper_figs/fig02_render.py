@@ -5,7 +5,7 @@
   _fig3_model  : nerve (endo+epi) in 12-contact cuff (translucent silicone +
                  gold contacts) with fascicular fibers
   _fig3_mesh   : clipped multi-region tetrahedral mesh colored by material
-Shared by fig3_setup.py (which adds the Ve / activating-function plots).
+Shared by fig02_setup.py (which adds the Ve / activating-function plots).
 """
 from __future__ import annotations
 from pathlib import Path

@@ -4,7 +4,7 @@
 """Fig 7 (replacement) — superior-cardiac-branch-selective stimulation of the real-3D RABBIT
 cervical vagus with the 4x5 ring cuff. Same house style + layout as fig8 (new-human): full-
 width render on top, then realistic-population data panels, with a supplementary cuff-POSITION
-x multipolar-CONFIG sweep. RABBIT analogue of new_human_selectivity_fig.py.
+x multipolar-CONFIG sweep. RABBIT analogue of fig08_human_selectivity.py.
 
   MAIN (best result, realistic rabbit population):
     a render (swept cuff positions, best highlighted) | b pop by class | c recruitment by class

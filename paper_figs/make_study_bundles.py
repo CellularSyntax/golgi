@@ -197,7 +197,7 @@ _SCB_BRANCH = 1                                    # TARGET in the figs
 def _best_config_col(thr2d, branch) -> int:
     """Pick the config column the selectivity figures highlight: the one
     maximising (SCB% − trunk%) over amplitude, exactly like
-    new_human_selectivity_fig.analyse (iop = argmax(Ron − Roff))."""
+    fig08_human_selectivity.analyse (iop = argmax(Ron − Roff))."""
     import numpy as np
     fin = thr2d[np.isfinite(thr2d)]
     if fin.size == 0:

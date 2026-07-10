@@ -6,7 +6,7 @@ Uses the RABBIT cervical-vagus distribution (sample_rabbit from rabbit_repop_res
 C-dominated 45%, B 30%, A-delta 17%, A-beta 8% capped at 6um) -- NOT a pig/human preset
 (pig 8-11um fibers don't recruit on the sub-mm rabbit cuff; the same lesson fixed the old
 fig7 panel c). Writes thr_pop.npz (100us) + thr_pop_pw300.npz (300us, clinical) at the best
-position in the EXACT fig5_thresholds format so rabbit_selectivity_fig.py reads them like
+position in the EXACT fig5_thresholds format so fig07_rabbit_selectivity.py reads them like
 fig8 reads the human pop files.
 
 env: BEST_TAG (default off5_4x5).

@@ -261,8 +261,16 @@ def _render_one_bundle(src: Path, out_dir: Path, stem: str) -> list:
 
 
 def _cmd_figure(args) -> int:
-    """Render a bundle's result figures to PNG, headless — the exact
-    published numbers (activation-threshold scatter + Vₑ FEM slice).
+    """Render a QUICK-LOOK of a bundle's result to PNG, headless.
+
+    This is a single-panel per-bundle summary (activation-threshold
+    scatter + Vₑ FEM slice), built from the bundle's cached results with
+    golgi's own figure builders — the same plots the GUI's Sweep tab
+    shows. It is NOT the paper's multi-panel figure: those composite
+    layouts (renders + position×config panels) are produced by the
+    `paper_figs/` scripts from the full dataset (see `make_figures.py`
+    / the Reproducing-the-Paper wiki). A bundle carries one config's
+    slice, so it cannot reconstruct a whole paper figure.
 
     `bundle` is a .golgi/.zip, an already-extracted project dir, OR a
     DIRECTORY OF BUNDLES (renders every .golgi/.zip inside — batch mode
@@ -501,8 +509,8 @@ def dispatch(argv: list[str]) -> "int | None":
     p_figure = subs.add_parser(
         "figure",
         help=(
-            "Render a bundle's result figures (activation-threshold "
-            "scatter + Vₑ FEM slice) to PNG, headless."
+            "Quick-look PNG of a bundle's result (threshold scatter + "
+            "Vₑ slice). NOT the paper figures — see paper_figs/."
         ),
     )
     p_figure.add_argument(

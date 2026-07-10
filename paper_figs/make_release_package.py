@@ -51,16 +51,16 @@ KEEP_PAPERFIGS = {
     # shared output layout
     "io_paths.py",
     # final figure plotters (→ published figures)
-    "fig3_setup.py",                 # Fig 2 modeling setup
-    "fig3_render.py",                # Fig 3 renders
-    "fig_validation_full.py",        # Fig 4 (assembles a-f)
+    "fig02_setup.py",                 # Fig 2 modeling setup
+    "fig02_render.py",                # Fig 2 renders
+    "fig04_validation.py",        # Fig 4 (assembles a-f)
     "fig_bucksot.py", "fig_nrv.py", "validate_fig.py",   # Fig 4 panels (c-f) + S8 foundations
     "comsol_validation_fig.py",      # Fig 4 a/b (COMSOL cross-check) + S15 detail
     "_m1_golgi_cylinder.py",         # golgi M1 monopole solve (feeds Fig 4a / S15a)
-    "fig_species.py",                # Fig 5 (swine) + Fig 6 (human)
+    "fig05_06_species.py",                # Fig 5 (swine) + Fig 6 (human)
     "fig5_population.py", "fig06_selectivity.py",         # Fig 5/6 helpers
-    "rabbit_selectivity_fig.py",     # Fig 7
-    "new_human_selectivity_fig.py",  # Fig 8
+    "fig07_rabbit_selectivity.py",     # Fig 7
+    "fig08_human_selectivity.py",  # Fig 8
     "fig_supp_cohort.py", "cohort_table.py", "gen_s1_table.py",  # supp + S1
     "reseed_target_fascicle.py",
     # validation studies + digitized refs + setup renders (Fig 4 + S foundations)

@@ -27,7 +27,7 @@ from PIL import Image
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig   # noqa: E402
-from fig3_render import render_mesh, MAT, CONTACT_COL   # noqa: E402
+from fig02_render import render_mesh, MAT, CONTACT_COL   # noqa: E402
 ND = ROOT / "results_golgi/duke_meshes/sub-4_sam-3"
 CONTACT = 5                                            # central contact, z = 0
 

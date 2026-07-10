@@ -69,7 +69,7 @@ def main():
     axf = fig.add_subplot(gs[1, 2]); fig_bucksot.draw_panel(axf, "inverted", inset_pos=(0.40, 0.03, 0.60, 0.58), legend_fs=7.0); _lab(axf, "f")
 
     save_fig(fig, "fig4_validation", dpi=200, facecolor="white")
-    print("wrote fig_validation_full")
+    print("wrote fig04_validation")
 
 
 if __name__ == "__main__":
