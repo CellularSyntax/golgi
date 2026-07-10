@@ -31,9 +31,13 @@ from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-RECORD_ID = "21300037"                     # 10.5281/zenodo.21300037
+# Concept DOI 10.5281/zenodo.21000094 — always resolves to the LATEST version,
+# so the fetcher keeps working when a new bundle version is published. The API
+# returns the latest version's files (with version-specific download links) for
+# this concept record id.
+RECORD_ID = "21000094"                     # concept recid (10.5281/zenodo.21000094)
 API = "https://zenodo.org/api/records/{rid}"
-DL = "https://zenodo.org/records/{rid}/files/{key}?download=1"
+DL = "https://zenodo.org/records/{rid}/files/{key}?download=1"   # fallback only
 HERE = Path(__file__).resolve().parent
 DEFAULT_DEST = HERE / "out" / "zenodo_bundles"
 
@@ -51,8 +55,11 @@ def _list_files(rid: str) -> list[dict]:
         key = f.get("key") or f.get("filename")
         chk = f.get("checksum", "")        # "md5:<hex>"
         algo, _, digest = chk.partition(":") if ":" in chk else ("", "", "")
+        # version-specific download link straight from the API (robust when the
+        # concept recid resolves to whichever version is latest)
+        link = (f.get("links", {}) or {}).get("self", "")
         out.append(dict(key=key, size=int(f.get("size", 0)),
-                        algo=algo or "md5", digest=digest))
+                        algo=algo or "md5", digest=digest, link=link))
     return sorted(out, key=lambda d: d["key"])
 
 
@@ -116,7 +123,7 @@ def main() -> int:
             print(f"  ✓ {key} (already present, checksum ok)"); ok += 1
             continue
         print(f"  ↓ {key} ({f['size']/1e6:.1f} MB)")
-        url = DL.format(rid=a.record, key=quote(key))
+        url = f["link"] or DL.format(rid=a.record, key=quote(key))
         try:
             _download(url, dest, f["size"])
         except Exception as ex:             # noqa: BLE001

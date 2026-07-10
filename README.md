@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://doi.org/10.5281/zenodo.21281594"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21281594-blue" alt="DOI"></a>
+  <a href="https://doi.org/10.5281/zenodo.21000094"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21000094-blue" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg" alt="License: AGPL-3.0-or-later"></a>
   <img src="https://img.shields.io/badge/interfaces-GUI%20%C2%B7%20API%20%C2%B7%20CLI-success" alt="GUI · API · CLI">
   <img src="https://img.shields.io/badge/solver-FEniCSx-orange" alt="FEniCSx">
@@ -178,7 +178,8 @@ golgi replay vagus_study.golgi
 ```
 
 The bundles behind every figure in the paper are archived on Zenodo and replay byte-for-byte:
-[**doi.org/10.5281/zenodo.21300037**](https://doi.org/10.5281/zenodo.21300037). Fetch them with:
+[**doi.org/10.5281/zenodo.21000094**](https://doi.org/10.5281/zenodo.21000094) (concept DOI —
+always resolves to the latest version). Fetch them with:
 
 ```bash
 python paper_figs/fetch_bundles.py          # download + checksum-verify all bundles
