@@ -13,9 +13,9 @@
   <a href="https://doi.org/10.5281/zenodo.21281594"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21281594.svg" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg" alt="License: AGPL-3.0-or-later"></a>
   <img src="https://img.shields.io/badge/interfaces-GUI%20%C2%B7%20API%20%C2%B7%20CLI-success" alt="GUI · API · CLI">
-  <img src="https://img.shields.io/badge/solver-FEniCSx%20%C2%B7%20no%20COMSOL-orange" alt="FEniCSx · no COMSOL">
+  <img src="https://img.shields.io/badge/solver-FEniCSx-orange" alt="FEniCSx">
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/platform-Linux%20%C2%B7%20macOS-lightgrey" alt="Linux · macOS">
+  <img src="https://img.shields.io/badge/platform-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-lightgrey" alt="Linux · macOS · Windows">
   <a href="https://github.com/CellularSyntax/golgi/wiki"><img src="https://img.shields.io/badge/docs-wiki-1f6feb" alt="Documentation: wiki"></a>
 </p>
 
@@ -228,12 +228,19 @@ commercial** product additionally requires separate commercial licenses for TetG
 
 ## 🙏 Built with
 
-[FEniCSx/DOLFINx](https://fenicsproject.org/) ·
-[PETSc](https://petsc.org/) ·
-[TetGen](https://wias-berlin.de/software/tetgen/) ·
-[Gmsh](https://gmsh.info/) ·
-[NEURON](https://www.neuron.yale.edu/) + [PyFibers](https://github.com/wmglab-duke/pyfibers) ·
-[PyVista](https://pyvista.org/) ·
-[Trame](https://kitware.github.io/trame/) ·
-the [IT'IS tissue database](https://itis.swiss/virtual-population/tissue-properties/) ·
-and the open peripheral-nerve modeling community ([ASCENT](https://github.com/wmglab-duke/ascent), NRV).
+golgi stands on an all-open scientific stack:
+
+| Role | Built on |
+|---|---|
+| Finite-element field solver | [FEniCSx/DOLFINx](https://fenicsproject.org/) · [PETSc/SLEPc](https://petsc.org/) (MUMPS sparse direct solve) |
+| Meshing | [Gmsh](https://gmsh.info/) (surfaces) · [TetGen](https://wias-berlin.de/software/tetgen/) (tetrahedral volumes) · [meshio](https://github.com/nschloe/meshio) |
+| Fiber biophysics & thresholds | [NEURON](https://www.neuron.yale.edu/) + [PyFibers](https://github.com/wmglab-duke/pyfibers) (MRG); AxonML (optional GPU surrogate) |
+| Tissue properties | [IT'IS Foundation material database](https://itis.swiss/virtual-population/tissue-properties/) |
+| 3-D visualization & rendering | [PyVista](https://pyvista.org/) · [VTK](https://vtk.org/) |
+| Graphical interface | [Trame](https://kitware.github.io/trame/) + Vuetify (browser-based) |
+| Geometry & segmentation | [scikit-image](https://scikit-image.org/) · [OpenCV](https://opencv.org/) · [SimpleITK](https://simpleitk.org/) · [trimesh](https://trimesh.org/) · [PyMeshFix](https://github.com/pyvista/pymeshfix) |
+| Numerics & figures | [NumPy](https://numpy.org/) · [SciPy](https://scipy.org/) · [Matplotlib](https://matplotlib.org/) · [Plotly](https://plotly.com/python/) |
+| Data & auth | [SQLAlchemy](https://www.sqlalchemy.org/) · [bcrypt](https://github.com/pyca/bcrypt) |
+
+Inspired by and complementary to the open peripheral-nerve modeling community —
+[ASCENT](https://github.com/wmglab-duke/ascent) and NRV.
