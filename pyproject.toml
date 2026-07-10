@@ -25,9 +25,52 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
 ]
+
+# Runtime dependencies resolvable from PyPI. The compiled FEniCSx core
+# (fenics-dolfinx, petsc4py, mpi4py, ufl) is intentionally NOT listed — it is
+# provided by conda/mamba (see Installation). Versions are left unpinned so pip
+# leaves any build already supplied by the conda environment untouched and only
+# fetches what is missing.
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "pillow",
+    "h5py",
+    "tifffile",
+    "scikit-image",
+    "SimpleITK",
+    "opencv-python",
+    "bcrypt",
+    "SQLAlchemy",
+    "aiohttp",
+    "trame",
+    "trame-vuetify",
+    "trame-vtk",
+    "pyvista",
+    "vtk",
+    "gmsh",
+    "tetgen",
+    "meshio",
+    "trimesh",
+    "pymeshfix",
+    "pyacvd",
+    "optimesh",
+    "mapbox_earcut",
+    "plotly",
+    "kaleido",
+]
+
+[project.optional-dependencies]
+# NEURON-based biophysical activation thresholds (requires a working NEURON).
+neuron = ["pyfibers"]
+# Optional GPU surrogate backend. AxonML and the SAM2 segmentation checkpoint
+# are installed separately — see the Installation wiki page.
+gpu = ["torch"]
 
 [project.urls]
 Homepage = "https://github.com/CellularSyntax/golgi"
@@ -43,6 +86,11 @@ golgi = "golgi.app:main"
 
 [tool.setuptools]
 packages = ["golgi"]
+# cuff_designer.py is a top-level module (ASCENT-style parametric cuff
+# primitives) imported by golgi.app / golgi.api / golgi.figures. Install it
+# alongside the package so it is importable from the `golgi` console script,
+# which — unlike `python file.py` — does not put the repo root on sys.path.
+py-modules = ["cuff_designer"]
 
 [tool.marimo.runtime]
 output_max_bytes = 1_000_000_000
