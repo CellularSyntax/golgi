@@ -3929,6 +3929,82 @@ def boundary_tris_of_tets(tets: np.ndarray) -> np.ndarray:
     return faces[counts[inv] == 1]
 
 
+# Tet region tag for the endoneurium (nerve interior) in golgi's
+# multi-domain meshes. Canonical layout: 1=endoneurium, 2=perineurium
+# /epineurium, 3=saline, 4=muscle (see the σ-by-tag block in
+# solve_nerve.py and the region-tag map in pipeline/plc.py).
+_ENDONEURIUM_TAG = 1
+
+
+def nerve_from_project_mesh(pdir: Path) -> dict | None:
+    """Reconstruct a source-shaped nerve dict from a project's cached
+    mesh when the project has NO source geometry on disk.
+
+    Duke/ASCENT-pipeline projects (and the study bundles exported from
+    them) build the volumetric mesh directly and never register a
+    source STL/NAS — `project.json` has `source_file: ""` and `source/`
+    is empty. Without a `geom.nerve`, `do_open_project` skips the whole
+    load → cuff-fit → mesh/FEM-restore chain and the GUI stays blank
+    with every menu item disabled.
+
+    We pull the endoneurium (tag-1) region out of a design's
+    `nerve.msh`, take its boundary surface, and return the SAME dict
+    shape `load_nerve_file` produces (`pts_raw` in metres, `tets_raw`,
+    `boundary_raw`, `source_file`). The mesh nodes are already in
+    metres, so no unit conversion is applied. Returns None if no usable
+    mesh is found.
+    """
+    # Locate a nerve.msh: legacy flat root, else the first design.
+    candidates: list[Path] = []
+    root_msh = pdir / "nerve.msh"
+    if root_msh.is_file():
+        candidates.append(root_msh)
+    designs_dir = pdir / "designs"
+    if designs_dir.is_dir():
+        for d in sorted(designs_dir.iterdir()):
+            if d.is_dir() and (d / "nerve.msh").is_file():
+                candidates.append(d / "nerve.msh")
+    if not candidates:
+        return None
+
+    msh_path = candidates[0]
+    try:
+        m = meshio.read(str(msh_path))
+    except Exception as ex:                                  # noqa: BLE001
+        print(
+            f"[open] nerve-from-mesh: meshio.read failed "
+            f"({msh_path}): {ex}",
+            flush=True,
+        )
+        return None
+    if "tetra" not in m.cells_dict:
+        return None
+    pts = np.asarray(m.points, dtype=np.float64)             # metres
+    tets = np.asarray(m.cells_dict["tetra"], dtype=np.int64)
+    tags = np.asarray(
+        m.cell_data_dict.get("gmsh:physical", {}).get(
+            "tetra", np.zeros(len(tets)),
+        ),
+        dtype=np.int32,
+    )
+    # Isolate the endoneurium region (the nerve). Fall back to the
+    # whole mesh only if the tag is absent — better a placed nerve
+    # than none, though the muscle bath would dominate the PCA.
+    sel = tets[tags == _ENDONEURIUM_TAG]
+    if sel.shape[0] == 0:
+        sel = tets
+    used = np.unique(sel)
+    remap = np.full(pts.shape[0], -1, dtype=np.int64)
+    remap[used] = np.arange(used.size)
+    sub_pts = pts[used]
+    sub_tets = remap[sel]
+    bnd = boundary_tris_of_tets(sub_tets)
+    return dict(
+        pts_raw=sub_pts, tets_raw=sub_tets, boundary_raw=bnd,
+        source_file="mesh:endoneurium",
+    )
+
+
 # W1.2: per-element mesh-quality math lives in
 # `golgi.pipeline.mesh_quality`. The leading-underscore aliases here
 # preserve the historical call sites elsewhere in app.py without
@@ -13404,8 +13480,12 @@ def build_app(port: int) -> None:
             _has_fibers_peek
             and (_sweeps_dir_peek / "latest.txt").is_file()
         )
+        # No source on disk but a cached mesh exists (Duke/ASCENT
+        # pipeline projects + their study bundles): reconstruct the
+        # nerve from the mesh so the scene still renders.
+        _synth_nerve = (not _has_src_peek) and _has_mesh_peek
         steps: list[str] = ["Activating project"]
-        if _has_src_peek:
+        if _has_src_peek or _synth_nerve:
             steps.append("Loading nerve")
             steps.append("Arranging electrodes")
         if _has_mesh_peek:
@@ -13534,19 +13614,50 @@ def build_app(port: int) -> None:
                         "see Import drawer log"
                     )
                 await asyncio.sleep(_STAGE_SETTLE_S)
-                # 3) Cuff fit — prerequisite for the cached
-                #    mesh actors to land in the right frame.
-                if geom.nerve is not None:
-                    _set_step("Arranging electrodes")
-                    await do_fit_cuff(refit=True)
-                    if geom.R_ci is not None:
-                        _push_log(
-                            f"✓ Cuff fitted  R_ci = "
-                            f"{geom.R_ci * 1e3:.2f} mm, "
-                            f"R_co = "
-                            f"{(geom.R_co or 0.0) * 1e3:.2f} mm"
-                        )
-                    await asyncio.sleep(_STAGE_SETTLE_S)
+            elif _synth_nerve:
+                # No source file, but a cached mesh exists — this is a
+                # Duke/ASCENT-pipeline project (or a study bundle
+                # exported from one). Reconstruct the nerve surface
+                # from the mesh's endoneurium region so the scene
+                # renders and the cuff-fit / mesh-restore chain below
+                # has a reference frame. Runs off-loop (meshio.read +
+                # boundary extraction on a big tet mesh).
+                _set_step("Loading nerve")
+                loop = asyncio.get_event_loop()
+                _synth = await loop.run_in_executor(
+                    None, nerve_from_project_mesh, pdir,
+                )
+                if _synth is not None:
+                    geom.nerve = _synth
+                    geom.centroid, geom.R_global = global_pca(
+                        _synth["pts_raw"],
+                    )
+                    _push_log(
+                        f"✓ Nerve reconstructed from mesh "
+                        f"({_synth['pts_raw'].shape[0]:,} pts, "
+                        f"{_synth['boundary_raw'].shape[0]:,} tris)"
+                    )
+                else:
+                    _push_log(
+                        "⚠ No source geometry and mesh nerve "
+                        "reconstruction failed — see logs"
+                    )
+                await asyncio.sleep(_STAGE_SETTLE_S)
+
+            # 3) Cuff fit — prerequisite for the cached mesh actors
+            #    to land in the right frame. Runs for both a loaded
+            #    source and a mesh-reconstructed nerve.
+            if geom.nerve is not None:
+                _set_step("Arranging electrodes")
+                await do_fit_cuff(refit=True)
+                if geom.R_ci is not None:
+                    _push_log(
+                        f"✓ Cuff fitted  R_ci = "
+                        f"{geom.R_ci * 1e3:.2f} mm, "
+                        f"R_co = "
+                        f"{(geom.R_co or 0.0) * 1e3:.2f} mm"
+                    )
+                await asyncio.sleep(_STAGE_SETTLE_S)
 
             # 4) Restore cached mesh (skips slow TetGen rebuild).
             if _has_mesh_peek:

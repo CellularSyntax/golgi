@@ -216,7 +216,7 @@ def render(
                 # Anchor (not <button>) so the browser handles
                 # the new-tab navigation + middle-click natively.
                 with html.A(
-                    href="https://www.google.com/",
+                    href="https://github.com/CellularSyntax/golgi/wiki",
                     target="_blank",
                     rel="noopener noreferrer",
                     classes="golgi-btn-secondary",
