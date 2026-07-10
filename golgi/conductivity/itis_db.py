@@ -4,7 +4,9 @@
 """IT'IS Material Database (V4.2) loader + derived Cole-Cole presets.
 
 Source: `<repo>/resources/tissue_db/IT'IS_Material_database_V4.2.db`,
-a SQLite file shipped with golgi. 941 of the 1300 materials carry
+a free SQLite database you download from IT'IS — it is *not*
+redistributed with golgi (see resources/tissue_db/README.md).
+941 of the 1300 materials carry
 the `gabriel_parameters` vector that this module unpacks into
 4-term Cole-Cole dispersions consumable by
 `golgi.conductivity.cole_cole.cole_cole_sigma`.
@@ -24,10 +26,10 @@ Module attributes:
                           tissue (DC-ish to upper-bound of neurostim).
 
 The DB load is *eager* the first time any of the above attributes is
-referenced from outside this module. If the .db file is missing
-(headless environments, CI containers), the load silently degrades
-to an empty dict and the Cole-Cole dialog still works with the
-Custom preset only.
+referenced from outside this module. If the .db file is missing, the
+load degrades to an empty dict (printing a one-time hint pointing to
+the download) and the Cole-Cole dialog still works with the Custom
+preset only.
 """
 from __future__ import annotations
 
@@ -66,6 +68,14 @@ def load_itis_cole_cole_db(
     SI seconds here. Empty dict if the DB isn't on disk."""
     out: dict[str, dict] = {}
     if not db_path.exists():
+        print(
+            f"[golgi] IT'IS tissue database not found at {db_path} — using the "
+            "Custom Cole-Cole preset only. Download the free IT'IS material "
+            "database from https://itis.swiss/virtual-population/tissue-properties/ "
+            "and place IT'IS_Material_database_V4.2.db in resources/tissue_db/ to "
+            "enable the built-in tissue presets (see resources/tissue_db/README.md).",
+            flush=True,
+        )
         return out
     # Per-dispersion τ unit factors → seconds. Order matches the
     # vector layout (D1, D2, D3, D4).
