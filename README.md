@@ -106,11 +106,15 @@ rest of its dependencies then install with pip:
 mamba create -n golgi -c conda-forge fenics-dolfinx python=3.12
 mamba activate golgi
 pip install -e .              # golgi + its PyPI deps (GUI, meshing, visualization, analysis)
+golgi fetch-tissue-db         # download the IT'IS tissue-properties database (see below)
 ```
 
 Only the FEniCSx core is conda-provided (it is not portably pip-installable); the GUI, meshing,
 visualization, and analysis stack (Trame, PyVista/VTK, Gmsh, bcrypt, …) is declared in
-`pyproject.toml` and pulled in automatically. **NEURON** — for biophysical activation thresholds
+`pyproject.toml` and pulled in automatically. The **IT'IS tissue-properties database** (used for
+Cole–Cole conductivity) is not redistributed with golgi — `golgi fetch-tissue-db` downloads it
+directly from the [IT'IS Foundation](https://itis.swiss/virtual-population/tissue-properties/) (golgi
+still runs without it, falling back to a Custom preset). **NEURON** — for biophysical activation thresholds
 (`pip install -e ".[neuron]"` plus a NEURON install) — and the optional extras (an **NVIDIA GPU
 (CUDA)** for the AxonML high-throughput backend, and a **MedSAM2/SAM** checkpoint for promptable
 segmentation, with a stub-segmenter fallback) are documented on the
