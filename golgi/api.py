@@ -221,7 +221,7 @@ class Study:
         from golgi.app import (  # noqa: E402
             DEFAULT_CUFF, DEFAULT_ELECTRODE, DEFAULT_MESH, DEFAULT_SIGMA,
             FIBER_MODEL_DIAMETER_CONFIG, _FIBER_MODEL_DIAMETER_DEFAULT,
-            TAB10_PALETTE, list_data_files,
+            MAX_FIBER_BRANCHES, TAB10_PALETTE, list_data_files,
         )
         st = self._state
         _sd.ui_toggles.register(st)
@@ -284,6 +284,11 @@ class Study:
             "fiber_cluster_eps_mm": 2.0, "fiber_cap_band_pct": 15.0,
             "fiber_min_rel_size_pct": 20.0, "fiber_axial_normal_thresh": 0.70,
         }
+        # Per-branch display names the GUI seeds inline (build_app), used by the
+        # fiber branch-classification step.
+        extras.update({
+            f"fiber_branch_name_{_i}": "" for _i in range(MAX_FIBER_BRANCHES)
+        })
         for _k, _v in extras.items():
             if _k not in st:
                 st[_k] = _v
