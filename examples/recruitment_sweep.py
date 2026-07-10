@@ -173,6 +173,21 @@ def main(argv: "list[str] | None" = None) -> int:
     n_tot = int(result.thresholds_uA.size)
     print(f"    → {n_act}/{n_tot} fibers activated (≤10 mA)")
 
+    # Nothing to sweep means an upstream solver subprocess failed (the driver
+    # logs the traceback and continues rather than aborting). Fail loudly here
+    # instead of writing an empty bundle and exiting 0 — a "successful" run that
+    # activated 0/0 fibers is worse than an error.
+    if n_tot == 0:
+        print(
+            "\n[error] 0 fibers reached the sweep — the FEM and/or fiber-tracing\n"
+            "        solver did not run. Scroll up for the underlying traceback.\n"
+            "        A common cause is a missing solver stack: on native Windows\n"
+            "        petsc4py is unavailable (ModuleNotFoundError: petsc4py) — run\n"
+            "        golgi under WSL2. See the Installation wiki (Windows / WSL2).",
+            file=sys.stderr, flush=True)
+        s.close()
+        return 1
+
     # ---- 8. Bundle export ----
     out_zip = project_dir.parent / f"{project_dir.name}_study.zip"
     s.export_bundle(out_zip)
