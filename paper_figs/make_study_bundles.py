@@ -178,7 +178,17 @@ _DEFAULT_CLASSES = [
     {"diam_um": 5.7, "model": "MRG_INTERPOLATION"},
     {"diam_um": 2.0, "model": "SMALL_MRG_INTERPOLATION"},
 ]
-FIBER_CLASSES: dict[str, list[dict]] = {
+# Per-bundle activation-threshold fiber populations. A value is EITHER a
+# list of discrete {diam_um, model} classes assigned round-robin, OR a
+# {"preset": <POP_PRESETS name>, "n_c_frac": f} that samples the paper's
+# curated species vagus population (golgi.state_defaults.pop_presets)
+# exactly like fig5_thresholds.sample_pop.
+#
+# 4a dog-VNS uses the validation's discrete A/B/B/C classes. The
+# selectivity bundles (5/6/7/8) draw the realistic species distribution.
+# NOTE: rabbit (7) + Bucksot (4c) fall back to the rat preset — confirm
+# against each figure's actual --pop choice before the final deposit.
+FIBER_CLASSES: dict[str, object] = {
     "fig04a_dogvns_validation": [
         {"diam_um": 7.8, "model": "MRG_INTERPOLATION"},
         {"diam_um": 3.6, "model": "MRG_INTERPOLATION"},
@@ -187,7 +197,61 @@ FIBER_CLASSES: dict[str, list[dict]] = {
         # diameters < 1.011 µm).
         {"diam_um": 1.0, "model": "TIGERHOLM"},
     ],
+    "fig04c_bucksot_validation": {"preset": "cervical_vagus_rat",
+                                   "n_c_frac": 0.0},
+    "fig05_swine_cervical_vagus": {"preset": "cervical_vagus_pig",
+                                   "n_c_frac": 0.25},
+    "fig06_human_cervical_vagus": {"preset": "cervical_vagus_human",
+                                   "n_c_frac": 0.25},
+    "fig07_rabbit_branching": {"preset": "cervical_vagus_rat",
+                               "n_c_frac": 0.25},
+    "fig08_human_scb_branching": {"preset": "cervical_vagus_human",
+                                  "n_c_frac": 0.25},
 }
+
+# MRG-family models reject diameters below these floors; unmyelinated
+# models take the small end. Mirrors fig5_thresholds.CLIP.
+_CLIP = {"MRG_INTERPOLATION": (2.0, 16.0),
+         "SMALL_MRG_INTERPOLATION": (1.5, 5.0)}
+_UNMYEL = {"SUNDT", "TIGERHOLM", "RATTAY", "SCHILD94", "SCHILD97"}
+
+
+def _population_for(spec, n):
+    """Return (diameters_um, models) arrays of length n for a bundle's
+    FIBER_CLASSES entry — either round-robin discrete classes or a
+    sampled species preset (fixed seed for reproducible bundles)."""
+    import numpy as np
+    if isinstance(spec, list):
+        diam = np.array([spec[i % len(spec)]["diam_um"]
+                         for i in range(n)], float)
+        model = [spec[i % len(spec)]["model"] for i in range(n)]
+        return diam, model
+    # preset spec
+    from golgi.state_defaults.pop_presets import POP_PRESETS
+    rows = POP_PRESETS[spec["preset"]].templates[0].rows
+    myel = [r for r in rows if r.model not in _UNMYEL]
+    crows = [r for r in rows if r.model in _UNMYEL]
+    rng = np.random.default_rng(1)
+    n_c = int(round(n * float(spec.get("n_c_frac", 0.0)))) if crows else 0
+    n_c = min(n_c, n)
+    n_my = n - n_c
+    diam = np.zeros(n)
+    model = [""] * n
+    w = np.array([r.frac for r in myel], float)
+    w /= w.sum()
+    sel = rng.choice(len(myel), size=n_my, p=w)
+    for k in range(n_my):
+        r = myel[sel[k]]
+        lo, hi = _CLIP.get(r.model, (1.0, 16.0))
+        diam[k] = float(np.clip(rng.normal(r.mean_um, r.std_um), lo, hi))
+        model[k] = r.model
+    for k in range(n_my, n):
+        cr = crows[0]
+        diam[k] = float(np.clip(rng.normal(cr.mean_um, cr.std_um),
+                                0.25, 2.0))
+        model[k] = cr.model
+    p = rng.permutation(n)
+    return diam[p], [model[i] for i in p]
 
 
 def _ensure_threshold_sweep(proj: Path, fid: str) -> str:
@@ -207,7 +271,7 @@ def _ensure_threshold_sweep(proj: Path, fid: str) -> str:
         from golgi.jobs.schemas import SweepRequest
     except Exception as ex:                                  # noqa: BLE001
         return f"skip: golgi import failed ({ex})"
-    classes = FIBER_CLASSES.get(fid, _DEFAULT_CLASSES)
+    spec = FIBER_CLASSES.get(fid, _DEFAULT_CLASSES)
     try:
         s = golgi.Study.open(proj)
     except Exception as ex:                                  # noqa: BLE001
@@ -220,15 +284,9 @@ def _ensure_threshold_sweep(proj: Path, fid: str) -> str:
                 f"skip: no cached fibers/field "
                 f"(fibers={n}, Ve={info.get('n_ve_fibers')})"
             )
-        # Assign the validation's fiber classes round-robin across the
-        # cached fibers → a population spanning the diameters/models.
-        diams = np.array(
-            [classes[i % len(classes)]["diam_um"] for i in range(n)],
-            dtype=np.float64,
-        )
-        models = [classes[i % len(classes)]["model"] for i in range(n)]
-        s._geom.fiber_pop_diameters_um = diams
-        s._geom.fiber_pop_types = models
+        diams, models = _population_for(spec, n)
+        s._geom.fiber_pop_diameters_um = np.asarray(diams, dtype=np.float64)
+        s._geom.fiber_pop_types = list(models)
         s.run_sweep(SweepRequest(
             mode="threshold",
             bisect_lo_mA=0.001,
@@ -236,10 +294,16 @@ def _ensure_threshold_sweep(proj: Path, fid: str) -> str:
             bisect_tol_uA=10.0,
             model_source="population",
         ))
-        cls = "/".join(f"{c['diam_um']:g}" for c in classes)
-        dflt = " (DEFAULT — validation classes not wired)" \
-            if fid not in FIBER_CLASSES else ""
-        return f"ok ({n} fibers, {len(classes)} classes {cls}µm){dflt}"
+        if isinstance(spec, dict):
+            desc = f"preset {spec['preset']}"
+        else:
+            desc = "classes " + "/".join(
+                f"{c['diam_um']:g}" for c in spec) + "µm"
+        dflt = " (DEFAULT — not wired)" if fid not in FIBER_CLASSES else ""
+        return (
+            f"ok ({n} fibers, {desc}, "
+            f"{len(set(models))} model(s)){dflt}"
+        )
     except Exception as ex:                                  # noqa: BLE001
         return f"skip: sweep failed ({type(ex).__name__}: {ex})"
     finally:
