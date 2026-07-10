@@ -276,6 +276,13 @@ class Study:
             "pop_cnap_figure": None, "pop_cnap_status": "",
             "fiber_branch_summary": [], "fiber_n_branches": 0,
             "pop_row_meta": [], "fem_impedance": None,
+            # fiber-generation / trajectory defaults. build_app() seeds these
+            # inline (not via a state_defaults register()), so gap-fill them
+            # here too — else headless run_fibers() hits an unset state field.
+            "n_fibers": 100, "fiber_max_steps": 10000,
+            "fiber_seed_end": "trunk (low z)",
+            "fiber_cluster_eps_mm": 2.0, "fiber_cap_band_pct": 15.0,
+            "fiber_min_rel_size_pct": 20.0, "fiber_axial_normal_thresh": 0.70,
         }
         for _k, _v in extras.items():
             if _k not in st:
