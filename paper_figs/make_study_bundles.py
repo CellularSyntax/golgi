@@ -163,154 +163,102 @@ def _sha256_file(p: Path) -> str:
     return h.hexdigest()
 
 
-# Per-bundle activation-threshold fiber classes. Each bundle reproduces
-# its own validation's fiber types; the cached sweep assigns these
-# (diameter µm, MRG/small-MRG model) round-robin across the bundle's
-# cached fibers and runs one threshold bisection per fiber, so the GUI's
-# threshold scatter shows the per-class thresholds on import.
-#
-# dog-VNS: A 7.8 / fast-B 3.6 / slow-B 2.1 µm MRG + small 1.0 µm
-# (validate_dogvns_native.py). Other bundles fall back to _DEFAULT_-
-# CLASSES until their validation classes are wired in — extract from the
-# matching fig*_thresholds / validate_* script.
-_DEFAULT_CLASSES = [
-    {"diam_um": 10.0, "model": "MRG_INTERPOLATION"},
-    {"diam_um": 5.7, "model": "MRG_INTERPOLATION"},
-    {"diam_um": 2.0, "model": "SMALL_MRG_INTERPOLATION"},
-]
-# Per-bundle activation-threshold fiber populations. A value is EITHER a
-# list of discrete {diam_um, model} classes assigned round-robin, OR a
-# {"preset": <POP_PRESETS name>, "n_c_frac": f} that samples the paper's
-# curated species vagus population (golgi.state_defaults.pop_presets)
-# exactly like fig5_thresholds.sample_pop.
-#
-# 4a dog-VNS uses the validation's discrete A/B/B/C classes. The
-# selectivity bundles (5/6/7/8) draw the realistic species distribution.
-# NOTE: rabbit (7) + Bucksot (4c) fall back to the rat preset — confirm
-# against each figure's actual --pop choice before the final deposit.
-FIBER_CLASSES: dict[str, object] = {
-    "fig04a_dogvns_validation": [
-        {"diam_um": 7.8, "model": "MRG_INTERPOLATION"},
-        {"diam_um": 3.6, "model": "MRG_INTERPOLATION"},
-        {"diam_um": 2.1, "model": "MRG_INTERPOLATION"},
-        # C fibre — unmyelinated Tigerholm (MRG-family models reject
-        # diameters < 1.011 µm).
-        {"diam_um": 1.0, "model": "TIGERHOLM"},
-    ],
-    "fig04c_bucksot_validation": {"preset": "cervical_vagus_rat",
-                                   "n_c_frac": 0.0},
-    "fig05_swine_cervical_vagus": {"preset": "cervical_vagus_pig",
-                                   "n_c_frac": 0.25},
-    "fig06_human_cervical_vagus": {"preset": "cervical_vagus_human",
-                                   "n_c_frac": 0.25},
-    "fig07_rabbit_branching": {"preset": "cervical_vagus_rat",
-                               "n_c_frac": 0.25},
-    "fig08_human_scb_branching": {"preset": "cervical_vagus_human",
-                                  "n_c_frac": 0.25},
+# Activation thresholds are bundled from the figures' STORED sweep
+# outputs, so a bundle shows the EXACT published numbers on import — no
+# recomputation, no re-sampling. Each fig*_thresholds.py already wrote a
+# per-fibre threshold .npz (thr_uA[n_fibers×n_contacts], fiber_idx,
+# diameter_um, model, type_label, branch_idx) computed on the SAME fibers
+# the bundle carries; we reconstitute it into the bundle's sweeps/ cache.
+# A single-config bundle shows ONE contact column (the "slice" of the
+# figure's position×config sweep). STORED_THR maps bundle id → (npz under
+# out/data, contact-column index).
+# NOTE: rabbit (12 contacts) + human-SCB tripole (4) — col 0 is a
+# placeholder; set it to the contact the bundle's cfg_01 actually solves
+# before the final deposit. 4a dog-VNS + 4c Bucksot use validation-table
+# formats (not per-fibre) and are handled separately / left uncached.
+STORED_THR: dict[str, tuple[str, int]] = {
+    "fig05_swine_cervical_vagus": ("thr_pop_swine.npz", 0),
+    "fig06_human_cervical_vagus": ("thr_pop_human.npz", 0),
+    "fig07_rabbit_branching": ("rabbit_branch_thr.npz", 0),
+    "fig08_human_scb_branching": ("new_human_tripole_thr.npz", 0),
 }
-
-# MRG-family models reject diameters below these floors; unmyelinated
-# models take the small end. Mirrors fig5_thresholds.CLIP.
-_CLIP = {"MRG_INTERPOLATION": (2.0, 16.0),
-         "SMALL_MRG_INTERPOLATION": (1.5, 5.0)}
-_UNMYEL = {"SUNDT", "TIGERHOLM", "RATTAY", "SCHILD94", "SCHILD97"}
+DATA_DIR = ROOT / "paper_figs" / "out" / "data"
 
 
-def _population_for(spec, n):
-    """Return (diameters_um, models) arrays of length n for a bundle's
-    FIBER_CLASSES entry — either round-robin discrete classes or a
-    sampled species preset (fixed seed for reproducible bundles)."""
-    import numpy as np
-    if isinstance(spec, list):
-        diam = np.array([spec[i % len(spec)]["diam_um"]
-                         for i in range(n)], float)
-        model = [spec[i % len(spec)]["model"] for i in range(n)]
-        return diam, model
-    # preset spec
-    from golgi.state_defaults.pop_presets import POP_PRESETS
-    rows = POP_PRESETS[spec["preset"]].templates[0].rows
-    myel = [r for r in rows if r.model not in _UNMYEL]
-    crows = [r for r in rows if r.model in _UNMYEL]
-    rng = np.random.default_rng(1)
-    n_c = int(round(n * float(spec.get("n_c_frac", 0.0)))) if crows else 0
-    n_c = min(n_c, n)
-    n_my = n - n_c
-    diam = np.zeros(n)
-    model = [""] * n
-    w = np.array([r.frac for r in myel], float)
-    w /= w.sum()
-    sel = rng.choice(len(myel), size=n_my, p=w)
-    for k in range(n_my):
-        r = myel[sel[k]]
-        lo, hi = _CLIP.get(r.model, (1.0, 16.0))
-        diam[k] = float(np.clip(rng.normal(r.mean_um, r.std_um), lo, hi))
-        model[k] = r.model
-    for k in range(n_my, n):
-        cr = crows[0]
-        diam[k] = float(np.clip(rng.normal(cr.mean_um, cr.std_um),
-                                0.25, 2.0))
-        model[k] = cr.model
-    p = rng.permutation(n)
-    return diam[p], [model[i] for i in p]
-
-
-def _ensure_threshold_sweep(proj: Path, fid: str) -> str:
-    """Compute + cache a per-class activation-threshold sweep on `proj`
-    so the exported bundle surfaces thresholds in the GUI's Sweep tab on
-    import (via <project>/sweeps/). Idempotent: skips if a sweep cache
-    already exists. Needs NEURON/pyfibers — returns a status string; on
-    any failure (no NEURON, no fibers/FEM on disk) it logs and returns
-    the reason so the bundle still exports, just without thresholds."""
-    if (proj / "sweeps" / "latest.txt").is_file() or list(
-        proj.glob("sweeps/sweep_*.npz")
-    ):
+def _ingest_stored_thresholds(proj: Path, fid: str) -> str:
+    """Reconstitute the figure's STORED per-fibre thresholds into the
+    bundle's sweeps/ cache so the GUI shows the exact published numbers.
+    Idempotent; no NEURON, no recomputation."""
+    if (proj / "sweeps" / "latest.txt").is_file():
         return "cached (already present)"
+    ent = STORED_THR.get(fid)
+    if ent is None:
+        return "no stored-threshold mapping (validation-table figure)"
+    fname, col = ent
+    src = DATA_DIR / fname
+    if not src.is_file():
+        return f"skip: stored file missing ({src.name})"
     try:
         import numpy as np
-        import golgi
-        from golgi.jobs.schemas import SweepRequest
+        from golgi.jobs.schemas import SweepRequest, SweepResult
+        from golgi.projects import sweep_cache as _swc
+        from golgi.pipeline import fem_layout as _fl
     except Exception as ex:                                  # noqa: BLE001
-        return f"skip: golgi import failed ({ex})"
-    spec = FIBER_CLASSES.get(fid, _DEFAULT_CLASSES)
+        return f"skip: import failed ({ex})"
     try:
-        s = golgi.Study.open(proj)
-    except Exception as ex:                                  # noqa: BLE001
-        return f"skip: could not open project ({ex})"
-    try:
-        info = s.load_cached_geometry()
-        n = int(info.get("n_fibers") or 0)
-        if not n or not info.get("n_ve_fibers"):
-            return (
-                f"skip: no cached fibers/field "
-                f"(fibers={n}, Ve={info.get('n_ve_fibers')})"
-            )
-        diams, models = _population_for(spec, n)
-        s._geom.fiber_pop_diameters_um = np.asarray(diams, dtype=np.float64)
-        s._geom.fiber_pop_types = list(models)
-        s.run_sweep(SweepRequest(
-            mode="threshold",
-            bisect_lo_mA=0.001,
-            bisect_hi_mA=20.0,
-            bisect_tol_uA=10.0,
-            model_source="population",
-        ))
-        if isinstance(spec, dict):
-            desc = f"preset {spec['preset']}"
-        else:
-            desc = "classes " + "/".join(
-                f"{c['diam_um']:g}" for c in spec) + "µm"
-        dflt = " (DEFAULT — not wired)" if fid not in FIBER_CLASSES else ""
-        return (
-            f"ok ({n} fibers, {desc}, "
-            f"{len(set(models))} model(s)){dflt}"
+        d = np.load(src, allow_pickle=True)
+        thr = np.asarray(d["thr_uA"], dtype=np.float64)
+        if thr.ndim == 2:
+            col = min(col, thr.shape[1] - 1)
+            thr = thr[:, col]
+        fidx = np.asarray(d["fiber_idx"], dtype=np.int64)
+        diam = np.asarray(d["diameter_um"], dtype=np.float64)
+        bidx = np.asarray(
+            d["branch_idx"] if "branch_idx" in d.files
+            else np.zeros(len(fidx)), dtype=np.int32,
         )
+        types = ([str(x) for x in d["type_label"]]
+                 if "type_label" in d.files else [])
     except Exception as ex:                                  # noqa: BLE001
-        return f"skip: sweep failed ({type(ex).__name__}: {ex})"
-    finally:
-        try:
-            s.close()
-        except Exception:                                    # noqa: BLE001
-            pass
+        return f"skip: could not read {fname} ({ex})"
+    # Fiber-count alignment against the bundle's cached fibers — refuse
+    # to write a sweep indexed against a different fiber set.
+    fpath = None
+    dsg = proj / "designs"
+    if dsg.is_dir():
+        for dd in sorted(dsg.iterdir()):
+            if (dd / "nerve_paths_fibers.npz").is_file():
+                fpath = dd / "nerve_paths_fibers.npz"
+                break
+    if fpath is None and (proj / "nerve_paths_fibers.npz").is_file():
+        fpath = proj / "nerve_paths_fibers.npz"
+    if fpath is None:
+        return "skip: bundle has no fibers"
+    n_bundle = int(len(np.load(fpath)["path_lengths"]))
+    if int(fidx.max()) >= n_bundle:
+        return (f"skip: stored fiber index {int(fidx.max())} >= bundle "
+                f"fibers {n_bundle} — fiber-set mismatch")
+    # Save project-wide (cid=None) so the bare `sweep_<sha>.npz` +
+    # global latest.txt are what the GUI's load_latest() reads on
+    # import. A cid-tagged file is written under a `latest_<cid>.txt`
+    # that the project-wide loader doesn't consult.
+    result = SweepResult(
+        request=SweepRequest(mode="threshold"),
+        fiber_indices=fidx,
+        fiber_diameters_um=diam,
+        fiber_branch_idx=bidx,
+        fiber_type_labels=types,
+        thresholds_uA=thr,
+        elapsed_s=0.0,
+        n_sims_total=int(len(fidx)),
+    )
+    try:
+        _swc.save_sweep(result, proj, write_csvs=True, cid=None)
+    except Exception as ex:                                  # noqa: BLE001
+        return f"skip: cache write failed ({ex})"
+    n_act = int(np.isfinite(thr).sum())
+    return (f"ok ({len(fidx)} fibers from {fname} col {col}, "
+            f"{n_act} recruited ≤hi)")
 
 
 def _export_one(spec: dict) -> dict | None:
@@ -337,8 +285,8 @@ def _export_one(spec: dict) -> dict | None:
 
     # Cache an activation-threshold sweep so the bundle shows thresholds
     # in the GUI on import (needs NEURON; skips cleanly if unavailable).
-    _sw = _ensure_threshold_sweep(proj, fid)
-    print(f"    threshold sweep: {_sw}", flush=True)
+    _sw = _ingest_stored_thresholds(proj, fid)
+    print(f"    threshold cache: {_sw}", flush=True)
 
     out_zip = DEPOSIT / f"{fid}.golgi.zip"
     print(f"  export {fid} ← {proj.relative_to(ROOT)} …", flush=True)
