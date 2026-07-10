@@ -24,15 +24,30 @@ nerve_studio's caches.
 """
 from __future__ import annotations
 
-# F2.2 — wslink's default WebSocket message-size cap is 4 MB.
-# Study bundles routinely exceed that (50-500 MB for projects
-# with a built mesh + FEM outputs). The cap is read from the
-# WSLINK_MAX_MSG_SIZE env var at wslink import time, so we set
-# it BEFORE any other imports below that pull wslink in
-# transitively. 512 MB gives us headroom for typical bundles
-# without committing to unbounded memory.
+# F2.2 — the WebSocket message-size cap. Importing a study bundle
+# pushes the whole reconstituted VTK scene to the browser in one
+# frame; for a built mesh + FEM outputs that easily exceeds 10 MB
+# and the connection is reset mid-render ("Message size … exceeds
+# limit"), leaving the GUI blank with every menu disabled.
+#
+# There are TWO caps and they must agree:
+#   * wslink reads WSLINK_MAX_MSG_SIZE at import time, BUT
+#   * trame OVERWRITES WSLINK_MAX_MSG_SIZE at server.start() from
+#     its own `ws_max_msg_size` option, whose default is only
+#     10_000_000 (10 MB) unless TRAME_WS_MAX_MSG_SIZE is set.
+# So setting WSLINK_MAX_MSG_SIZE alone is silently clobbered by
+# trame — TRAME_WS_MAX_MSG_SIZE is the knob that actually wins.
+# Set both, BEFORE any import below pulls wslink/trame in.
+#
+# 4 GB default: some validation bundles (dense meshes + full FEM
+# fields) push a scene well over 1 GB in a single frame. Both are
+# `setdefault`, so a user can tune it up or down via the shell env
+# (e.g. TRAME_WS_MAX_MSG_SIZE) — a very large scene is memory-heavy
+# on both server and browser, but the cap must not be the blocker.
 import os as _os
-_os.environ.setdefault("WSLINK_MAX_MSG_SIZE", str(512 * 1024 * 1024))
+_MAX_WS_BYTES = str(4 * 1024 * 1024 * 1024)
+_os.environ.setdefault("WSLINK_MAX_MSG_SIZE", _MAX_WS_BYTES)
+_os.environ.setdefault("TRAME_WS_MAX_MSG_SIZE", _MAX_WS_BYTES)
 
 # R1.4 fix-up #6 — macOS OpenMP thread-pool-init crash.
 # Symptoms when these vars are missing: clicking "Generate fiber
@@ -123,7 +138,11 @@ from sqlalchemy.orm import (
 # MUST be set before importing trame — wslink reads them at module
 # import time.
 os.environ.setdefault("WSLINK_HEART_BEAT", "3600")
-os.environ.setdefault("WSLINK_MAX_MSG_SIZE", str(32 * 1024 * 1024))
+# Message-size cap is set to 4 GB at the top of this file (both
+# WSLINK_MAX_MSG_SIZE and the TRAME_WS_MAX_MSG_SIZE knob that trame
+# actually honours). Do NOT re-set a smaller value here — a 32 MB
+# setdefault used to shadow the intent and blanked the GUI on large
+# bundle imports.
 
 import meshio
 import numpy as np
