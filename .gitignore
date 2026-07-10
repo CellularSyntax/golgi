@@ -6,3 +6,4 @@ __pycache__/
 build/
 dist/
 wiki/
+paper_figs/out
