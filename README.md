@@ -99,20 +99,23 @@ batch job are fully interchangeable:
 
 ## 📦 Installation
 
-golgi depends on **FEniCSx/DOLFINx** and **NEURON**, most easily installed with conda/mamba:
+golgi's compiled scientific core — **FEniCSx/DOLFINx** — is installed with conda/mamba; golgi and the
+rest of its dependencies then install with pip:
 
 ```bash
 mamba create -n golgi -c conda-forge fenics-dolfinx python=3.12
 mamba activate golgi
-pip install -e .
+pip install -e .              # golgi + its PyPI deps (GUI, meshing, visualization, analysis)
 ```
 
-The heavy scientific stack (FEniCSx, NEURON/PyFibers, Gmsh, PyVista, Trame, …) lives in the conda
-environment. The full, exact dependency list and the optional extras — an **NVIDIA GPU (CUDA)** for
-the AxonML high-throughput backend, and a **MedSAM2/SAM** checkpoint for promptable segmentation
-(golgi falls back to a stub segmenter without it) — are documented on the
-[**Installation**](https://github.com/CellularSyntax/golgi/wiki/Installation) wiki page. A diagnostic
-snapshot of a known-good environment is in [`requirements-frozen.txt`](requirements-frozen.txt).
+Only the FEniCSx core is conda-provided (it is not portably pip-installable); the GUI, meshing,
+visualization, and analysis stack (Trame, PyVista/VTK, Gmsh, bcrypt, …) is declared in
+`pyproject.toml` and pulled in automatically. **NEURON** — for biophysical activation thresholds
+(`pip install -e ".[neuron]"` plus a NEURON install) — and the optional extras (an **NVIDIA GPU
+(CUDA)** for the AxonML high-throughput backend, and a **MedSAM2/SAM** checkpoint for promptable
+segmentation, with a stub-segmenter fallback) are documented on the
+[**Installation**](https://github.com/CellularSyntax/golgi/wiki/Installation) wiki page. A pinned
+version snapshot of a known-good environment is in [`requirements-frozen.txt`](requirements-frozen.txt).
 
 ## 🚀 Quick start
 
