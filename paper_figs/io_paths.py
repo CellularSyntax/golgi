@@ -9,10 +9,15 @@ out/
   data/                    json + npz (summaries, matrices, probes)
   _intermediate/           render scratch (auto-regenerated)
 """
+import os
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
+# ROOT is the working tree that holds paper_figs/out (the full intermediate
+# dataset the figure scripts read). Defaults to the repo root (the parent of
+# paper_figs/), so a fresh checkout resolves it automatically; override with the
+# GOLGI_PAPER_ROOT environment variable to point at a dataset kept elsewhere.
+ROOT = Path(os.environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 OUT = ROOT / "paper_figs/out"
 FIG_FORMATS = ("png", "pdf", "svg")
 FIG_DIRS = {e: OUT / "figures" / e for e in FIG_FORMATS}
@@ -98,11 +103,11 @@ def draw_scalebar(ax, w_px, h_px, ppmm, frac=0.22, pad_frac=0.05,
     ax.plot([x0, x1], [y, y], color=color, lw=lw, solid_capstyle="butt",
             clip_on=False, zorder=12, path_effects=halo)
     t = ax.text((x0 + x1) / 2, y - 0.018 * h_px, f"{mm:g} mm", ha="center", va="bottom",
-                fontsize=9.5, color=color, zorder=12, clip_on=False)
+                fontsize=11, color=color, zorder=12, clip_on=False)
     t.set_path_effects([pe.withStroke(linewidth=2.4, foreground="white")])
 
 
-def render_legend(ax, entries, y=-0.03, fontsize=9.5, ncol=None):
+def render_legend(ax, entries, y=-0.03, fontsize=11, ncol=None):
     """Horizontal domain legend below an imshow'd render axis. `entries` is a list
     of (color, label); a coloured square is drawn for each."""
     from matplotlib.patches import Patch

@@ -19,11 +19,48 @@ Usage:
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+# Where the working dataset lives — same resolution as io_paths.ROOT so the
+# guard checks exactly where the figure scripts will read from.
+_ROOT = Path(os.environ.get("GOLGI_PAPER_ROOT") or HERE.parent)
+_OUT = _ROOT / "paper_figs" / "out"
+
+# --- reproducibility guard ------------------------------------------------
+# These composite figures are regenerated from the FULL working dataset
+# (paper_figs/out/_intermediate + out/data): raw meshes, FEM fields, fiber
+# sweeps and cel-shaded renders. That dataset is NOT the Zenodo deposit — the
+# Zenodo record ships replay-verified *study bundles* (.golgi.zip), which drive
+# `golgi replay` (integrity check) and `golgi figure` (quick-look panels), not
+# this script. If the raw dataset is absent, fail early with directions rather
+# than deep inside a figure script with a cryptic FileNotFoundError.
+DOI = "10.5281/zenodo.21300037"
+
+
+def _dataset_present() -> bool:
+    inter, data = _OUT / "_intermediate", _OUT / "data"
+    return inter.is_dir() and data.is_dir() and any(inter.glob("*")) and any(data.glob("*.npz"))
+
+
+def _dataset_help() -> str:
+    return (
+        "\nThe paper's composite figures need the full working dataset in\n"
+        f"  {_OUT}/_intermediate  and  {_OUT}/data\n"
+        "(raw meshes, FEM fields, fiber sweeps, renders). This dataset is the\n"
+        "authors' regeneration tree and is not part of the public repo.\n\n"
+        "For third-party reproduction use the Zenodo *study bundles* instead —\n"
+        f"  https://doi.org/{DOI}\n"
+        "  python paper_figs/fetch_bundles.py        # download the bundles\n"
+        "  golgi replay <bundle.golgi.zip>           # verify byte-for-byte\n"
+        "  golgi figure <bundle.golgi.zip>           # render quick-look panels\n\n"
+        "If you DO have the dataset elsewhere, point ROOT at it:\n"
+        "  GOLGI_PAPER_ROOT=/path/to/tree python paper_figs/make_figures.py\n"
+    )
+
 
 # Figure number → the script(s) that produce it. fig05_06_species.py
 # produces BOTH Fig 5 (swine) and Fig 6 (human) in one run, so fig05 and
@@ -57,6 +94,11 @@ def _scripts_for(want: list[str]) -> list[str]:
 
 def main(argv: list[str]) -> int:
     scripts = _scripts_for(argv)
+    if not _dataset_present():
+        print("✗ paper dataset not found — cannot regenerate the composite "
+              "figures.", file=sys.stderr)
+        print(_dataset_help(), file=sys.stderr)
+        return 2
     rc = 0
     for s in scripts:
         script = HERE / s

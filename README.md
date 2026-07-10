@@ -178,7 +178,17 @@ golgi replay vagus_study.golgi
 ```
 
 The bundles behind every figure in the paper are archived on Zenodo and replay byte-for-byte:
-[**doi.org/10.5281/zenodo.21000095**](https://doi.org/10.5281/zenodo.21000095).
+[**doi.org/10.5281/zenodo.21300037**](https://doi.org/10.5281/zenodo.21300037). Fetch them with:
+
+```bash
+python paper_figs/fetch_bundles.py          # download + checksum-verify all bundles
+golgi replay <bundle.golgi.zip>             # verify byte-for-byte
+golgi figure <bundle.golgi.zip>             # render quick-look panels
+```
+
+> This bundle path is the third-party reproduction route. `paper_figs/make_figures.py`
+> regenerates the full multi-panel figures instead, and needs the authors' complete
+> `paper_figs/out/` working tree (raw meshes, FEM, sweeps, renders) — not the bundles.
 
 See [Reproducible Study Bundles](https://github.com/CellularSyntax/golgi/wiki/Reproducible-Study-Bundles).
 
