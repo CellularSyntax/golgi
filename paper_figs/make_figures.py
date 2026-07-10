@@ -38,8 +38,8 @@ _OUT = _ROOT / "paper_figs" / "out"
 # `golgi replay` (integrity check) and `golgi figure` (quick-look panels), not
 # this script. If the raw dataset is absent, fail early with directions rather
 # than deep inside a figure script with a cryptic FileNotFoundError.
-BUNDLE_DOI = "10.5281/zenodo.21000094"     # study bundles (concept DOI)
-DATA_DOI = ""                              # working-dataset archive — set once deposited
+BUNDLE_DOI = "10.5281/zenodo.21300944"     # study bundles (concept DOI)
+DATA_DOI = "10.5281/zenodo.21300944"       # same combined record as the bundles
 
 
 def _dataset_present() -> bool:

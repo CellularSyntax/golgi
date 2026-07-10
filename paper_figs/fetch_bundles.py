@@ -31,11 +31,11 @@ from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-# Concept DOI 10.5281/zenodo.21000094 — always resolves to the LATEST version,
+# Concept DOI 10.5281/zenodo.21300944 — always resolves to the LATEST version,
 # so the fetcher keeps working when a new bundle version is published. The API
 # returns the latest version's files (with version-specific download links) for
 # this concept record id.
-RECORD_ID = "21000094"                     # concept recid (10.5281/zenodo.21000094)
+RECORD_ID = "21300944"                     # concept recid (10.5281/zenodo.21300944)
 API = "https://zenodo.org/api/records/{rid}"
 DL = "https://zenodo.org/records/{rid}/files/{key}?download=1"   # fallback only
 HERE = Path(__file__).resolve().parent
