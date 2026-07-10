@@ -379,16 +379,36 @@ def _build_fem_slice_figure(
     # reads as a smooth field instead of a chunky grid. Scipy
     # zoom with order=3 = cubic spline; falls back to order=1
     # (bilinear) if scipy isn't available (it always is here).
+    #
+    # NaN-AWARE: Ve is NaN wherever a grid point falls outside the
+    # conducting domain — for a round nerve+bath on a rectangular
+    # grid that's ~37% of the cells. A plain cubic zoom over NaN
+    # smears NaN across the ENTIRE slice (cubic support touches a
+    # NaN almost everywhere), producing an all-None heatmap trace
+    # that renders blank — the "empty slice heatmap" on extruded /
+    # bath geometries. So fill NaN→0, zoom the data and a finite
+    # mask separately, divide to renormalise, and re-mask cells the
+    # interpolation could not support (mask < 0.5). This keeps the
+    # field smooth inside the domain and NaN (transparent) outside.
     Ve_disp = Ve
     x_disp = x_arr
     y_disp = y_arr
     if upsample > 1:
         try:
             from scipy.ndimage import zoom as _zoom
-            Ve_disp = _zoom(
-                Ve, zoom=(1, upsample, upsample),
+            _finite = np.isfinite(Ve).astype(np.float64)
+            _filled = np.where(_finite > 0, Ve, 0.0)
+            _num = _zoom(
+                _filled, zoom=(1, upsample, upsample),
                 order=3, mode="nearest",
             )
+            _den = _zoom(
+                _finite, zoom=(1, upsample, upsample),
+                order=1, mode="nearest",
+            )
+            with np.errstate(invalid="ignore", divide="ignore"):
+                Ve_disp = _num / _den
+            Ve_disp[_den < 0.5] = np.nan
             x_disp = np.linspace(
                 x_arr[0], x_arr[-1], Ve_disp.shape[2],
             )
@@ -396,7 +416,9 @@ def _build_fem_slice_figure(
                 y_arr[0], y_arr[-1], Ve_disp.shape[1],
             )
         except Exception:
-            pass
+            Ve_disp = Ve
+            x_disp = x_arr
+            y_disp = y_arr
     Ve_disp_mV = Ve_disp * 1.0e3
 
     # GLOBAL colour scale across the whole volume so colours stay
