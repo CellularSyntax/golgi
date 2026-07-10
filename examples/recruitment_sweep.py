@@ -4,8 +4,11 @@ fibers → threshold sweep → bundle export.
 By default this runs on a **synthetic cylindrical nerve** generated on the fly,
 so it needs no external data:
 
-    # Synthetic nerve (no data needed):
+    # Synthetic nerve (no data needed), 12-fiber quick demo (~a few minutes):
     python examples/recruitment_sweep.py
+
+    # Fuller run (slower — one NEURON bisection per fiber):
+    python examples/recruitment_sweep.py --fibers 50
 
     # Your own geometry:
     python examples/recruitment_sweep.py --nerve /path/to/nerve.stl --project /tmp/study
@@ -75,6 +78,11 @@ def main(argv: "list[str] | None" = None) -> int:
         "--project", type=Path,
         default=Path.cwd() / "golgi_demo_recruitment_sweep",
         help="Project directory (default: ./golgi_demo_recruitment_sweep).")
+    ap.add_argument(
+        "--fibers", type=int, default=12,
+        help="Number of fibers to trace and sweep. The threshold sweep runs "
+             "one NEURON bisection per fiber (~10 s each), so the default is "
+             "kept small for a quick demo; use e.g. 50 for a fuller run.")
     args = ap.parse_args(argv)
 
     # ---- 1. Project setup ----
@@ -136,7 +144,7 @@ def main(argv: "list[str] | None" = None) -> int:
     # Trace fibers BEFORE the FEM solve: run_fem samples each contact's lead
     # field onto the existing fiber paths (that per-fiber potential is what the
     # threshold sweep needs). Fibers first → the field lands on them.
-    s.set_fiber_seed(n_fibers=50, fiber_auto_detect_branches=True)
+    s.set_fiber_seed(n_fibers=args.fibers, fiber_auto_detect_branches=True)
     s.run_fibers()
     print("[5] fiber trajectories generated")
 
@@ -145,7 +153,13 @@ def main(argv: "list[str] | None" = None) -> int:
     print("[6] FEM solved")
 
     # ---- 7. Amplitude sweep + threshold finder ----
+    # This is the long pole: one NEURON threshold bisection per fiber, and it
+    # runs silently until every fiber is done. The heartbeat below makes clear
+    # the demo is working, not hung.
     from golgi.jobs.schemas import SweepRequest
+    print(f"[7] sweeping activation thresholds for {args.fibers} fibers "
+          f"(NEURON bisection, ~10 s/fiber — no output until done) …",
+          flush=True)
     result = s.run_sweep(SweepRequest(
         mode="threshold",
         bisect_lo_mA=0.01,
@@ -157,7 +171,7 @@ def main(argv: "list[str] | None" = None) -> int:
     ))
     n_act = int((result.thresholds_uA > 0).sum())
     n_tot = int(result.thresholds_uA.size)
-    print(f"[7] swept thresholds: {n_act}/{n_tot} fibers activated (≤10 mA)")
+    print(f"    → {n_act}/{n_tot} fibers activated (≤10 mA)")
 
     # ---- 8. Bundle export ----
     out_zip = project_dir.parent / f"{project_dir.name}_study.zip"
