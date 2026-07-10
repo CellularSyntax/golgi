@@ -31,7 +31,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Circle, Wedge, Polygon as MplPoly
 from matplotlib.lines import Line2D
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "paper_figs"))
 from fig5_population import classify, UNMYEL, diam_panel, recruit_panel, ORDER, CLASS_COL   # noqa: E402
 from fig06_selectivity import panel_ap, panel_thrdiam                     # noqa: E402
@@ -176,14 +176,14 @@ def panel_xsec(ax, tag, S, best, thr, branch):
             ax.scatter(xy[mk, 0], xy[mk, 1], s=s, c=col, marker="o", lw=0, zorder=z)
     lim = R * 1.28
     ax.set_xlim(-lim, lim); ax.set_ylim(-lim, lim); ax.set_aspect("equal"); ax.axis("off")
-    ax.plot([lim - 1.0 - 0.06 * R, lim - 0.06 * R], [-lim + 0.07 * R] * 2, "k-", lw=2.2,
-            solid_capstyle="butt")
-    ax.text(lim - 0.5 - 0.06 * R, -lim + 0.10 * R, "1 mm", ha="center", va="bottom", fontsize=7.5)
+    x1 = lim + 0.05 * R; x0 = x1 - 1.0; y = -lim + 0.07 * R                   # tuck into the empty corner
+    ax.plot([x0, x1], [y, y], "k-", lw=2.2, solid_capstyle="butt", clip_on=False)
+    ax.text((x0 + x1) / 2, y + 0.03 * R, "1 mm", ha="center", va="bottom", fontsize=9, clip_on=False)
     handles = [Line2D([], [], marker="o", ls="", mfc=cc, mec="none", ms=7, label=ll) for cc, ll in
                [(C_ON_ACT, "SCB act."), (C_ON_SIL, "SCB silent"),
                 (C_OFF_ACT, "trunk act."), (C_OFF_SIL, "trunk silent")]]
     ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.04), ncol=4,
-              fontsize=7.4, frameon=False, handletextpad=0.3, columnspacing=1.0)
+              fontsize=9.5, frameon=False, handletextpad=0.3, columnspacing=1.0)
     _letter(ax, "d")
 
 
@@ -197,10 +197,9 @@ def panel_window(ax, S, best, letter="e"):
     isat = int(np.argmax(ref >= 0.99 * ref.max())) if ref.max() > 0 else len(amps) - 1
     ax.set_xlim(amps.min(), min(float(amps.max()), float(amps[max(isat, 1)]) * 1.4))
     ax.set_xlabel("stimulus amplitude (mA)"); ax.set_ylabel("% recruited"); ax.set_ylim(0, 100)
-    ax.legend(fontsize=8.5, loc="upper left", frameon=False)                       # top-left
-    ax.text(0.03, 0.74, f"operating point\non {S[best]['son']:.0f}% / off {S[best]['soff']:.0f}%",
-            transform=ax.transAxes, ha="left", va="top", fontsize=8.5, color="0.15",
-            bbox=dict(facecolor="white", alpha=0.7, edgecolor="none", pad=1.5))   # below legend
+    ax.legend(fontsize=10.5, loc="upper left", frameon=False)                       # top-left
+    ax.text(1.0, 1.03, f"operating point: on {S[best]['son']:.0f}% / off {S[best]['soff']:.0f}%",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=10.5, color="0.15")
     _letter(ax, letter)
 
 
@@ -230,10 +229,10 @@ def panel_class(ax, thr, branch, typ, col, all_si, letter="f"):
            color=[CLASS_COL[r[0]] for r in rows], edgecolor="none")
     for i, r in enumerate(rows):
         ax.text(i, max(r[1], 0) + 0.02, f"{r[1]:.2f}", ha="center", va="bottom",
-                fontsize=8.5, fontweight="bold", color="0.2")
+                fontsize=10, fontweight="bold", color="0.2")
     ax.axhline(all_si, ls="--", lw=1.2, color="0.45")
     ax.text(len(rows) - 0.5, all_si + 0.015, f"all SCB {all_si:.2f}", ha="right", va="bottom",
-            fontsize=8, color="0.45")
+            fontsize=11.5, color="0.45")
     ax.set_xticks(x); ax.set_xticklabels([f"{r[0]}\n(n={r[5]})" for r in rows])
     ax.set_ylabel("selectivity index (SCB class vs trunk)"); ax.set_ylim(0, 1.05)
     _letter(ax, letter)
@@ -261,9 +260,9 @@ def panel_pw(ax, letter="d"):
         ax.bar(x + (i - 0.5) * w, [rows.get(c, 0) for c in classes], w, color=col, label=lab)
     ax.set_xticks(x); ax.set_xticklabels(classes)
     ax.set_ylabel("selectivity index (SCB class vs trunk)"); ax.set_ylim(0, 1.12)
-    ax.legend(fontsize=8.5, loc="upper right", frameon=False, title="pulse width")
+    ax.legend(fontsize=10.5, loc="upper right", frameon=False, title="pulse width")
     ax.text(0.02, 0.98, "op amplitude (all SCB): " + " → ".join(f"{a:.1f} mA" for _, a in amps),
-            transform=ax.transAxes, ha="left", va="top", fontsize=8, color="0.2")
+            transform=ax.transAxes, ha="left", va="top", fontsize=9.5, color="0.2")
     _letter(ax, letter)
 
 
@@ -285,7 +284,7 @@ def panel_sweep(ax, A, order, letter="a"):
         ax.plot(d[:, 0], d[:, 1], "o-", color=CFG_COL[nm], lw=2.3, ms=7, label=CFG_LAB[nm])
     ax.set_xlabel("cuff distance from bifurcation (mm)\n← nearer the branch")
     ax.set_ylabel("selectivity index"); ax.set_ylim(0, 1.04); ax.invert_xaxis()
-    ax.legend(fontsize=8.2, loc="upper right", frameon=False)
+    ax.legend(fontsize=10.5, loc="upper right", frameon=False)
     _letter(ax, letter)
 
 
@@ -298,8 +297,8 @@ def panel_amp(ax, A, order, letter="b"):
     ax.set_ylim(top=ax.get_ylim()[1] * 3.0)                          # headroom so the legend clears the lines
     ax.axhspan(0, 3, color="#cfe8cf", alpha=0.5, lw=0, zorder=0)
     ax.text(0.98, 3, "≤3 mA (clinical)", transform=ax.get_yaxis_transform(), ha="right",
-            va="bottom", fontsize=9, color="#3a7a3a")                # sits just above the band line
-    ax.legend(fontsize=8.2, loc="upper right", frameon=False)
+            va="bottom", fontsize=10.5, color="#3a7a3a")             # sits just above the band line
+    ax.legend(fontsize=10.5, loc="upper right", frameon=False, bbox_to_anchor=(1.0, 1.016))
     _letter(ax, letter)
 
 
@@ -311,10 +310,10 @@ def panel_configcmp(ax, A, tag, letter="c"):
     ax.bar(x + w / 2, off, w, color=C_OFF_ACT, label="trunk (off)")
     for i, c in enumerate(cfgs):
         ax.text(i, max(on[i], off[i]) + 4, f"SI {S[c]['si']:.2f}\n{S[c]['amp']/1e3:.1f} mA",
-                ha="center", va="bottom", fontsize=7.6, fontweight="bold", color="0.2")
+                ha="center", va="bottom", fontsize=9.5, fontweight="bold", color="0.2")
     ax.set_xticks(x); ax.set_xticklabels(["mono", "long.\ntripole", "trans.\ntripole"])
-    ax.set_ylabel("% recruited at op."); ax.set_ylim(0, 132)
-    ax.legend(fontsize=8.2, loc="upper right", frameon=False)
+    ax.set_ylabel("% recruited at op."); ax.set_ylim(0, 138)
+    ax.legend(fontsize=10.5, loc="upper right", frameon=False)
     _letter(ax, letter)
 
 
@@ -353,8 +352,8 @@ def main():
 
     ap = dict(np.load(APZ, allow_pickle=True)) if APZ.exists() else None
 
-    plt.rcParams.update({"font.size": 10.5, "axes.labelsize": 10.5, "xtick.labelsize": 9.5,
-                         "ytick.labelsize": 9.5, "axes.spines.top": False, "axes.spines.right": False})
+    plt.rcParams.update({"font.size": 12.5, "axes.labelsize": 12.5, "xtick.labelsize": 11,
+                         "ytick.labelsize": 11, "axes.spines.top": False, "axes.spines.right": False})
 
     # ---------- MAIN figure: best result only (render + realistic pop, fig5-8 style) ----------
     fig = plt.figure(figsize=(14, 14.5))
@@ -386,14 +385,12 @@ def main():
 
     # ---------- SUPPLEMENTARY: controlled 10 um sweep (a-c) + pulse-width comparison (d) ----------
     figs = plt.figure(figsize=(12.5, 9))
-    gss = GridSpec(2, 2, figure=figs, wspace=0.28, hspace=0.46, top=0.90, bottom=0.09,
+    gss = GridSpec(2, 2, figure=figs, wspace=0.28, hspace=0.52, top=0.955, bottom=0.09,
                    left=0.07, right=0.975)
     panel_sweep(figs.add_subplot(gss[0, 0]), A, order, "a")
     panel_amp(figs.add_subplot(gss[0, 1]), A, order, "b")
     panel_configcmp(figs.add_subplot(gss[1, 0]), A, BEST_TAG, "c")
     panel_pw(figs.add_subplot(gss[1, 1]), "d")
-    figs.suptitle("Supplementary — controlled 10 µm cuff-position × config sweep (a–c) and "
-                  "pulse-width comparison (d)", fontsize=12, fontweight="bold", y=0.965)
     figs.savefig(OUTSUPP, dpi=200, facecolor="white"); plt.close(figs)
     print(f"wrote {OUTSUPP}")
 

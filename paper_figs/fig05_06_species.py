@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
 
-ROOT = Path("/Users/admin/Desktop/DATA/Uni/Postdoc/2026/Students/Yuting Jia/Fenics_tests")
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig, DATA   # noqa: E402
 import fig5_population as fp           # noqa: E402

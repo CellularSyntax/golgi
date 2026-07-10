@@ -24,7 +24,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig   # noqa: E402
 import validate_fig as vf       # noqa: E402  (panel_dog)
@@ -47,26 +47,26 @@ def panel_comsol_scatter(ax):
                              cvf.comsol_ve("M2")).mean()
     m3 = cvf.per_contact_pct(G, C).mean()
     ax.text(0.96, 0.05, f"mean per-contact $|\\Delta|$ vs COMSOL:\nM2 cuff {m2:.1f}%   "
-            f"M3 swine {m3:.1f}%", transform=ax.transAxes, fontsize=6.8, va="bottom",
+            f"M3 swine {m3:.1f}%", transform=ax.transAxes, fontsize=11, va="bottom",
             ha="right", color="0.35")
 
 
 def main():
-    plt.rcParams.update({"font.size": 9.5, "axes.labelsize": 9.5, "xtick.labelsize": 8.5,
-                         "ytick.labelsize": 8.5, "axes.spines.top": False,
+    plt.rcParams.update({"font.size": 11.5, "axes.labelsize": 11.5, "xtick.labelsize": 10.5,
+                         "ytick.labelsize": 10.5, "axes.spines.top": False,
                          "axes.spines.right": False, "font.family": "DejaVu Sans"})
-    fig = plt.figure(figsize=(15.0, 8.6))
-    gs = fig.add_gridspec(2, 3, hspace=0.34, wspace=0.30, top=0.95, bottom=0.08,
+    fig = plt.figure(figsize=(16.5, 9.6))
+    gs = fig.add_gridspec(2, 3, hspace=0.38, wspace=0.30, top=0.92, bottom=0.075,
                           left=0.055, right=0.975)
 
     # row 1 — solver fidelity (a,b) + first physiology panel (c)
     axa = fig.add_subplot(gs[0, 0]); cvf.panel_m1(axa); _lab(axa, "a")
     axb = fig.add_subplot(gs[0, 1]); panel_comsol_scatter(axb); _lab(axb, "b")
-    axc = fig.add_subplot(gs[0, 2]); vf.panel_dog(axc, inset_pos=(0.50, 0.02, 0.50, 0.44), legend_fs=7.0); _lab(axc, "c")
+    axc = fig.add_subplot(gs[0, 2]); vf.panel_dog(axc, inset_pos=(0.50, 0.02, 0.50, 0.44), legend_fs=9.5); _lab(axc, "c")
     # row 2 — physiology (d,e,f)
-    axd = fig.add_subplot(gs[1, 0]); fig_nrv.draw(axd, inset_pos=(0.45, 0.03, 0.55, 0.52), legend_fs=7.0); _lab(axd, "d")
-    axe = fig.add_subplot(gs[1, 1]); fig_bucksot.draw_panel(axe, "circ", inset_pos=(0.40, 0.03, 0.60, 0.58), legend_fs=7.0); _lab(axe, "e")
-    axf = fig.add_subplot(gs[1, 2]); fig_bucksot.draw_panel(axf, "inverted", inset_pos=(0.40, 0.03, 0.60, 0.58), legend_fs=7.0); _lab(axf, "f")
+    axd = fig.add_subplot(gs[1, 0]); fig_nrv.draw(axd, inset_pos=(0.45, 0.03, 0.55, 0.52), legend_fs=9.5); _lab(axd, "d")
+    axe = fig.add_subplot(gs[1, 1]); fig_bucksot.draw_panel(axe, "circ", inset_pos=(0.40, 0.03, 0.60, 0.58), legend_fs=9.5); _lab(axe, "e")
+    axf = fig.add_subplot(gs[1, 2]); fig_bucksot.draw_panel(axf, "inverted", inset_pos=(0.40, 0.03, 0.60, 0.58), legend_fs=9.5); _lab(axf, "f")
 
     save_fig(fig, "fig4_validation", dpi=200, facecolor="white")
     print("wrote fig04_validation")

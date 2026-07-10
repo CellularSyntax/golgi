@@ -19,7 +19,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig, DATA, transparent_render   # noqa: E402
 GOLGI = "#1a7fb5"
@@ -102,10 +102,10 @@ def panel_dog(ax, inset_pos=(0.50, 0.02, 0.50, 0.40), legend_fs=7.5):
     ax.plot(x, [g.get(k) for k in order], "o", color="#1a7fb5", ms=9, zorder=6, mec="white", mew=0.6,
             label="golgi (this work)")
     ax.set_yscale("log"); ax.set_ylim(0.12, 45); ax.set_xlim(-0.5, len(order) - 0.5)
-    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=8.5)
+    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=10.5)
     ax.set_ylabel("activation threshold (mA)")
     ax.legend(fontsize=legend_fs, loc="upper left", frameon=False)
-    ax.set_title("in-vivo dog VNS: experiment vs ASCENT vs golgi (300 µs)", fontsize=10, loc="left")
+    ax.set_title("in-vivo dog VNS: experiment vs ASCENT vs golgi (300 µs)", fontsize=12, loc="left")
     # cel-shaded dog-VNS device render as an inset, bottom-right (empty region, below
     # the rising data band: slow-B golgi sits at y-fraction ~0.44, so keep the top < 0.40)
     img = ROOT / "paper_figs/out/renders/dogvns_render.png"

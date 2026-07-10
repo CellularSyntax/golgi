@@ -17,7 +17,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig, DATA   # noqa: E402
 UNMYEL = {"SUNDT", "TIGERHOLM", "RATTAY", "SCHILD94", "SCHILD97"}
@@ -79,7 +79,7 @@ def diam_panel(ax, diam, typ, label, letter, illus=False, legend_loc="upper left
     ax.set_xscale("log"); ax.set_xticks([0.5, 1, 2, 5, 10])
     ax.set_xticklabels(["0.5", "1", "2", "5", "10"])
     ax.set_xlabel("diameter (µm)"); ax.set_ylabel("count")
-    ax.legend(fontsize=8, loc=legend_loc, frameon=False)
+    ax.legend(fontsize=10, loc=legend_loc, frameon=False)
     _lab(ax, letter, label)
 
 
@@ -92,7 +92,7 @@ def recruit_panel(ax, thr1, diam, typ, label, letter, legend_loc="lower right",
         ax.semilogx(amps / 1e3, frac, color=CLASS_COL[t], lw=2.2, label=f"{t} (n={n})")
     ax.set_xlabel("stimulus amplitude (mA)"); ax.set_ylabel("% recruited")
     ax.set_ylim(0, 100)
-    ax.legend(fontsize=8, loc=legend_loc, bbox_to_anchor=legend_anchor,
+    ax.legend(fontsize=10, loc=legend_loc, bbox_to_anchor=legend_anchor,
               borderaxespad=0.0, frameon=False)
     _lab(ax, letter, f"{label} — recruitment by class")
 
@@ -115,7 +115,7 @@ def thrdiam_panel(ax, thr1, diam, typ, label, letter):
 
 
 def _lab(ax, letter, title):
-    ax.set_title(title, fontsize=11, loc="left", pad=10)
+    ax.set_title(title, fontsize=13, loc="left", pad=10)
     ax.text(-0.02, 1.16, letter, transform=ax.transAxes, fontsize=15,
             fontweight="bold", va="top", ha="right")
 

@@ -38,30 +38,41 @@ _OUT = _ROOT / "paper_figs" / "out"
 # `golgi replay` (integrity check) and `golgi figure` (quick-look panels), not
 # this script. If the raw dataset is absent, fail early with directions rather
 # than deep inside a figure script with a cryptic FileNotFoundError.
-DOI = "10.5281/zenodo.21000094"        # concept DOI — always resolves to latest
+BUNDLE_DOI = "10.5281/zenodo.21000094"     # study bundles (concept DOI)
+DATA_DOI = ""                              # working-dataset archive — set once deposited
 
 
 def _dataset_present() -> bool:
+    """The composite figures read three trees under ROOT: paper_figs/out/data,
+    paper_figs/out/_intermediate, and results_golgi/duke_meshes. Require all
+    three so a partial download fails here with directions, not mid-figure."""
     inter, data = _OUT / "_intermediate", _OUT / "data"
-    return inter.is_dir() and data.is_dir() and any(inter.glob("*")) and any(data.glob("*.npz"))
+    duke = _ROOT / "results_golgi" / "duke_meshes"
+    return (data.is_dir() and any(data.glob("*.npz"))
+            and inter.is_dir() and any(inter.glob("*"))
+            and duke.is_dir() and any(duke.glob("*")))
 
 
 def _dataset_help() -> str:
+    data_line = (f"  https://doi.org/{DATA_DOI}\n" if DATA_DOI else
+                 "  (see the wiki: Reproducing the Paper — 'Regenerate the composite figures')\n")
     return (
-        "\nThe paper's composite figures need the full working dataset in\n"
-        f"  {_OUT}/_intermediate  and  {_OUT}/data\n"
-        "(raw meshes, FEM fields, fiber sweeps, renders). This dataset is the\n"
-        "authors' regeneration tree and is not part of the public repo.\n\n"
-        "The Zenodo *study bundles* are NOT this dataset — they are the\n"
-        "third-party reproduction path and drive golgi replay / golgi figure,\n"
-        "not make_figures.py. If you downloaded the bundles, run instead:\n"
-        f"  https://doi.org/{DOI}\n"
-        "  python paper_figs/fetch_bundles.py        # download the bundles\n"
-        "  golgi replay <bundle.golgi.zip>           # verify byte-for-byte\n"
-        "  golgi figure <bundle.golgi.zip> --out ./figs   # render quick-look panels\n\n"
-        "GOLGI_PAPER_ROOT is only for the authors' full working tree. It must\n"
-        "point at a directory that CONTAINS paper_figs/out/{_intermediate,data}\n"
-        "(a repo-root-like tree) — not the downloaded bundles folder.\n"
+        "\nThe composite figures are rebuilt from the full working dataset under\n"
+        f"  {_OUT}/data,  {_OUT}/_intermediate,  and\n"
+        f"  {_ROOT / 'results_golgi' / 'duke_meshes'}\n"
+        "(~27 GB of raw meshes, FEM fields, fiber sweeps, renders).\n\n"
+        "To regenerate them, download the working-dataset archive from Zenodo and\n"
+        "extract it at the repo root (so paper_figs/out/... and results_golgi/...\n"
+        "land in place), then re-run this script:\n"
+        f"{data_line}"
+        "  tar xzf golgi_paper_dataset.tar.gz          # run from the repo root\n"
+        "  python paper_figs/make_figures.py\n"
+        "Dataset kept elsewhere? point ROOT at the tree that CONTAINS paper_figs/out:\n"
+        "  GOLGI_PAPER_ROOT=/path/to/tree python paper_figs/make_figures.py\n\n"
+        "Only need to verify or quick-look a study (not rebuild the figures)? Use the\n"
+        f"lighter *study bundles* (https://doi.org/{BUNDLE_DOI}) instead:\n"
+        "  python paper_figs/fetch_bundles.py\n"
+        "  golgi replay <bundle.golgi.zip>   |   golgi figure <bundle.golgi.zip> --out ./figs\n"
     )
 
 

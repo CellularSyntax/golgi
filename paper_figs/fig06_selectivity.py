@@ -28,7 +28,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Polygon as MplPoly, Patch, Circle, Wedge
 from matplotlib.lines import Line2D
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig, DATA   # noqa: E402
 HI_UA = 10_000.0
@@ -143,10 +143,11 @@ def panel_xsec(ax, D, S, T, nm):
                        zorder=4 if col != C_OFF_SIL else 3.5)
     lim = (R + 0.5) if R else 1.12 * np.abs(D["outline"]).max()
     ax.set_xlim(-lim, lim); ax.set_ylim(-lim, lim); ax.set_aspect("equal"); ax.axis("off")
-    ax.plot([lim - 1.25, lim - 0.25], [-lim + 0.18, -lim + 0.18], "k-", lw=2.2, solid_capstyle="butt")
-    ax.text(lim - 0.75, -lim + 0.30, "1 mm", ha="center", va="bottom", fontsize=7)
+    ax.plot([lim - 0.85, lim + 0.15], [-lim + 0.18, -lim + 0.18], "k-", lw=2.2,
+            solid_capstyle="butt", clip_on=False)
+    ax.text(lim - 0.35, -lim + 0.30, "1 mm", ha="center", va="bottom", fontsize=9, clip_on=False)
     ax.set_title(f"{nm} — target fascicle {T['kt']} (peripheral) · SI {T['si']:.2f}",
-                 fontsize=11, loc="left")
+                 fontsize=13, loc="left")
 
 
 def panel_window(ax, S, T):
@@ -163,11 +164,22 @@ def panel_window(ax, S, T):
     isat = int(np.argmax(ref >= 0.99 * ref.max())) if ref.max() > 0 else len(amps) - 1
     hi = min(float(amps.max()), float(amps[max(isat, 1)]) * 1.4)
     ax.set_xlim(amps.min(), hi)
-    ax.text(0.03, 0.97, f"operating point\non {T['on_at_op']*100:.0f}% / off {T['off_at_op']*100:.0f}%",
-            transform=ax.transAxes, ha="left", va="top", fontsize=8.5, color="0.15",
-            bbox=dict(facecolor="white", alpha=0.7, edgecolor="none", pad=1.5))
+    # narrow sub-decade log ranges make matplotlib's default minor-tick labels
+    # collide (e.g. "8x10^-2" over "9x10^-2"); place a few clean decimal ticks instead
+    from matplotlib.ticker import FuncFormatter, NullLocator
+    _lo, _hi = ax.get_xlim()
+    _ticks = [m * 10.0 ** k for k in range(-4, 3) for m in (1, 2, 3, 5, 7)
+              if _lo <= m * 10.0 ** k <= _hi]
+    if len(_ticks) >= 2:
+        ax.set_xticks(_ticks)
+        ax.xaxis.set_minor_locator(NullLocator())
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _p: f"{v:g}"))
+    # operating-point note placed just above the top-right corner (outside the axes
+    # box) so it never overlaps the recruitment curves
+    ax.text(1.0, 1.03, f"operating point: on {T['on_at_op']*100:.0f}% / off {T['off_at_op']*100:.0f}%",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=10.5, color="0.15")
     ax.set_xlabel("stimulus amplitude (mA)"); ax.set_ylabel("% recruited")
-    ax.set_ylim(0, 100); ax.legend(fontsize=9, loc="lower right", frameon=False)
+    ax.set_ylim(0, 100); ax.legend(fontsize=10.5, loc="lower right", frameon=False)
 
 
 def panel_ap(ax, ap, nm, stim_z=0.0):
@@ -225,10 +237,10 @@ def panel_class(ax, thr_col, on01, typ, all_si, ORDER, CLASS_COL,
            color=[CLASS_COL[r[0]] for r in rows], edgecolor="none")
     for i, r in enumerate(rows):
         ax.text(i, max(r[1], 0) + 0.02, f"{r[1]:.2f}", ha="center", va="bottom",
-                fontsize=8.5, fontweight="bold", color="0.2")
+                fontsize=10, fontweight="bold", color="0.2")
     ax.axhline(all_si, ls="--", lw=1.2, color="0.45")
     ax.text(len(rows) - 0.5, all_si + 0.015, f"all {all_si:.2f}", ha="right", va="bottom",
-            fontsize=8, color="0.45")
+            fontsize=11.5, color="0.45")
     ax.set_xticks(x); ax.set_xticklabels([f"{r[0]}\n(n={r[5]})" for r in rows])
     ax.set_ylabel(ylabel); ax.set_ylim(0, 1.05)
 
@@ -253,9 +265,11 @@ def panel_thrdiam(ax, diam, thr_uA, on_mask, op_amp_mA, on_label="on-target",
     ax.axhline(op_amp_mA, ls="--", lw=1.3, color="0.35", zorder=2.5)
     ax.set_xscale("log"); ax.set_yscale("log")
     ax.set_xlabel("fiber diameter (µm)"); ax.set_ylabel("threshold (mA)")
-    ax.text(0.02, op_amp_mA, "operating\npoint", transform=ax.get_yaxis_transform(),
-            ha="left", va="top", fontsize=7.6, color="0.35")
-    ax.legend(fontsize=8.5, loc="upper right", frameon=False, handletextpad=0.2)
+    # sit the label ABOVE the operating-point line with a small gap (log-scale
+    # multiplicative pad ~ 10 px) so it doesn't crowd the dashed line
+    ax.text(0.02, op_amp_mA * 1.16, "operating\npoint", transform=ax.get_yaxis_transform(),
+            ha="left", va="bottom", fontsize=11.5, color="0.35")
+    ax.legend(fontsize=10.5, loc="upper right", frameon=False, handletextpad=0.2)
 
 
 def _lab(ax, letter):

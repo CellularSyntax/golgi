@@ -15,7 +15,7 @@ from PIL import Image
 import sys
 
 pv.OFF_SCREEN = True
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import TMP   # noqa: E402
 ND = ROOT / "results_golgi/duke_meshes/sub-4_sam-3"

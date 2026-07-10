@@ -24,7 +24,7 @@ from matplotlib.patches import Patch, Polygon as MplPoly
 from matplotlib.colors import LogNorm
 from PIL import Image
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig   # noqa: E402
 from fig02_render import render_mesh, MAT, CONTACT_COL   # noqa: E402

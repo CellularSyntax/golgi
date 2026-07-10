@@ -22,7 +22,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
 from PIL import Image
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__import__("os").environ.get("GOLGI_PAPER_ROOT") or Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(ROOT / "paper_figs"))
 from io_paths import save_fig, DATA, transparent_render   # noqa: E402
 
@@ -52,12 +52,14 @@ def draw(axb, inset_pos=(0.43, 0.02, 0.57, 0.56), legend_fs=8.0):
     axb.plot(ref["NH1991_50us"]["x"], ref["NH1991_50us"]["y"], "o", color=WARM, ms=5.5, mec="white", mew=0.7, zorder=4)
     axb.plot(ref["NH1991_20us"]["x"], ref["NH1991_20us"]["y"], "o", color=COOL, ms=5.5, mec="white", mew=0.7, zorder=4)
     axb.set_xlabel("stimulus current (µA)"); axb.set_ylabel("recruitment (norm.)")
-    axb.set_xlim(0, 180); axb.set_ylim(-0.02, 1.04)
+    axb.set_xlim(0, 180); axb.set_ylim(-0.02, 1.12)
     axb.spines[["top", "right"]].set_visible(False); axb.tick_params(length=3)
-    handles = [Line2D([], [], color=WARM, lw=2.6, ls="-", label="golgi · 50 µs"),
-               Line2D([], [], color=COOL, lw=2.6, ls="-", label="golgi · 20 µs"),
-               Line2D([], [], color=INK, lw=1.5, ls="--", alpha=0.8, label="NRV (Couppey 2024)"),
-               Line2D([], [], color=INK, marker="o", ls="none", ms=5.5, label="in-vivo (NH 1991)")]
+    # longest labels first so the short golgi entries sit at the bottom (nearest the
+    # rising curves) and don't extend into them
+    handles = [Line2D([], [], color=INK, lw=1.5, ls="--", alpha=0.8, label="NRV (Couppey 2024)"),
+               Line2D([], [], color=INK, marker="o", ls="none", ms=5.5, label="in-vivo (NH 1991)"),
+               Line2D([], [], color=WARM, lw=2.6, ls="-", label="golgi · 50 µs"),
+               Line2D([], [], color=COOL, lw=2.6, ls="-", label="golgi · 20 µs")]
     axb.legend(handles=handles, frameon=False, fontsize=legend_fs, loc="upper left",
                handlelength=1.8, borderaxespad=0.6)
     if RENDER.exists() and inset_pos:
