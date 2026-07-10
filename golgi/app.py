@@ -39,13 +39,23 @@ from __future__ import annotations
 # trame — TRAME_WS_MAX_MSG_SIZE is the knob that actually wins.
 # Set both, BEFORE any import below pulls wslink/trame in.
 #
-# 4 GB default: some validation bundles (dense meshes + full FEM
+# ~4 GB default: some validation bundles (dense meshes + full FEM
 # fields) push a scene well over 1 GB in a single frame. Both are
 # `setdefault`, so a user can tune it up or down via the shell env
 # (e.g. TRAME_WS_MAX_MSG_SIZE) — a very large scene is memory-heavy
 # on both server and browser, but the cap must not be the blocker.
+#
+# NOTE: aiohttp's WebSocketReader C extension stores max_msg_size in
+# a 32-bit unsigned int, so the value actually passed to it must stay
+# <= 2**32 - 1 (4294967295). But wslink's aiohttp backend adds its own
+# WSLINK_MSG_OVERHEAD (default 4096) on top of WSLINK_MAX_MSG_SIZE
+# before handing it to WebSocketReader:
+#   max_msg_size = MSG_OVERHEAD + MAX_MSG_SIZE
+# so this cap must leave that headroom, or it silently overflows and
+# crashes every WebSocket connection with:
+#   OverflowError: value too large to convert to unsigned int
 import os as _os
-_MAX_WS_BYTES = str(4 * 1024 * 1024 * 1024)
+_MAX_WS_BYTES = str(2**32 - 1 - 4096)
 _os.environ.setdefault("WSLINK_MAX_MSG_SIZE", _MAX_WS_BYTES)
 _os.environ.setdefault("TRAME_WS_MAX_MSG_SIZE", _MAX_WS_BYTES)
 
