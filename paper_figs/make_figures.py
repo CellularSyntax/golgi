@@ -38,7 +38,7 @@ _OUT = _ROOT / "paper_figs" / "out"
 # `golgi replay` (integrity check) and `golgi figure` (quick-look panels), not
 # this script. If the raw dataset is absent, fail early with directions rather
 # than deep inside a figure script with a cryptic FileNotFoundError.
-DOI = "10.5281/zenodo.21300037"
+DOI = "10.5281/zenodo.21000094"        # concept DOI — always resolves to latest
 
 
 def _dataset_present() -> bool:
@@ -52,13 +52,16 @@ def _dataset_help() -> str:
         f"  {_OUT}/_intermediate  and  {_OUT}/data\n"
         "(raw meshes, FEM fields, fiber sweeps, renders). This dataset is the\n"
         "authors' regeneration tree and is not part of the public repo.\n\n"
-        "For third-party reproduction use the Zenodo *study bundles* instead —\n"
+        "The Zenodo *study bundles* are NOT this dataset — they are the\n"
+        "third-party reproduction path and drive golgi replay / golgi figure,\n"
+        "not make_figures.py. If you downloaded the bundles, run instead:\n"
         f"  https://doi.org/{DOI}\n"
         "  python paper_figs/fetch_bundles.py        # download the bundles\n"
         "  golgi replay <bundle.golgi.zip>           # verify byte-for-byte\n"
-        "  golgi figure <bundle.golgi.zip>           # render quick-look panels\n\n"
-        "If you DO have the dataset elsewhere, point ROOT at it:\n"
-        "  GOLGI_PAPER_ROOT=/path/to/tree python paper_figs/make_figures.py\n"
+        "  golgi figure <bundle.golgi.zip> --out ./figs   # render quick-look panels\n\n"
+        "GOLGI_PAPER_ROOT is only for the authors' full working tree. It must\n"
+        "point at a directory that CONTAINS paper_figs/out/{_intermediate,data}\n"
+        "(a repo-root-like tree) — not the downloaded bundles folder.\n"
     )
 
 
