@@ -66,6 +66,7 @@ def _dataset_help() -> str:
         "land in place), then re-run this script:\n"
         f"{data_line}"
         "  tar xzf golgi_paper_dataset.tar.gz          # run from the repo root\n"
+        "  tar xzf golgi_comsol_handover.tar.gz        # Fig 4 COMSOL validation panels\n"
         "  python paper_figs/make_figures.py\n"
         "Dataset kept elsewhere? point ROOT at the tree that CONTAINS paper_figs/out:\n"
         "  GOLGI_PAPER_ROOT=/path/to/tree python paper_figs/make_figures.py\n\n"

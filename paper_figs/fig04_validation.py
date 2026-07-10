@@ -52,6 +52,17 @@ def panel_comsol_scatter(ax):
 
 
 def main():
+    # Panels a/b cross-validate against an independent COMSOL solve kept in the
+    # comsol_handover/ tree — a separate Zenodo archive, not part of the main
+    # working dataset. Fail with directions rather than a deep numpy traceback.
+    if not cvf.HAND.exists():
+        raise SystemExit(
+            f"✗ COMSOL reference data not found at {cvf.HAND}\n"
+            "  Figure 4's finite-element cross-validation panels (a, b) need the\n"
+            "  comsol_handover/ tree. Fetch golgi_comsol_handover.tar.gz from the\n"
+            "  Zenodo record (10.5281/zenodo.21300944) and extract it at the repo root:\n"
+            "      tar xzf golgi_comsol_handover.tar.gz"
+        )
     plt.rcParams.update({"font.size": 11.5, "axes.labelsize": 11.5, "xtick.labelsize": 10.5,
                          "ytick.labelsize": 10.5, "axes.spines.top": False,
                          "axes.spines.right": False, "font.family": "DejaVu Sans"})
