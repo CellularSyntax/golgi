@@ -276,6 +276,9 @@ class Study:
             "pop_cnap_figure": None, "pop_cnap_status": "",
             "fiber_branch_summary": [], "fiber_n_branches": 0,
             "pop_row_meta": [], "fem_impedance": None,
+            # mesh decimation target (build_app inline default; not covered by
+            # state_defaults.mesh.register()).
+            "decim_target_k": 50,
             # fiber-generation / trajectory defaults. build_app() seeds these
             # inline (not via a state_defaults register()), so gap-fill them
             # here too — else headless run_fibers() hits an unset state field.
@@ -767,6 +770,21 @@ class Study:
         from golgi.pipeline import sweep as _pipeline_sweep
         from golgi.projects import sweep_cache as _swc
         ctx = self._ensure_ctx()
+        # Fill stimulus pulse parameters from the fiber-stimulus state when the
+        # request doesn't carry them. The GUI builds these via
+        # H.fiber_pulse_params() before dispatching; headless callers usually
+        # leave SweepRequest.pulse_params empty, which would KeyError deep in
+        # the per-fiber sim.
+        if not getattr(request, "pulse_params", None):
+            try:
+                pp = ctx.helpers.fiber_pulse_params()
+                try:
+                    request.pulse_params = pp
+                except Exception:                        # frozen dataclass
+                    import dataclasses
+                    request = dataclasses.replace(request, pulse_params=pp)
+            except Exception as ex:                      # noqa: BLE001
+                print(f"[headless] pulse-params build failed: {ex}", flush=True)
         result = asyncio.run(
             _pipeline_sweep.run_sweep(ctx, request),
         )
