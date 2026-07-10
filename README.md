@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/golgi_logo_dark.gif">
-    <img src="docs/golgi_logo.gif" alt="golgi" width="480">
-  </picture>
+  <img src="docs/golgi_static_one_line.png" alt="golgi" width="520">
 </p>
 
 <p align="center">
@@ -10,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://doi.org/10.5281/zenodo.21281594"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21281594.svg" alt="DOI"></a>
+  <a href="https://doi.org/10.5281/zenodo.21281594"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21281594-blue" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg" alt="License: AGPL-3.0-or-later"></a>
   <img src="https://img.shields.io/badge/interfaces-GUI%20%C2%B7%20API%20%C2%B7%20CLI-success" alt="GUI · API · CLI">
   <img src="https://img.shields.io/badge/solver-FEniCSx-orange" alt="FEniCSx">
