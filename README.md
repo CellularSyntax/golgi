@@ -177,6 +177,9 @@ differs) with one command:
 golgi replay vagus_study.golgi
 ```
 
+The bundles behind every figure in the paper are archived on Zenodo and replay byte-for-byte:
+[**doi.org/10.5281/zenodo.21000095**](https://doi.org/10.5281/zenodo.21000095).
+
 See [Reproducible Study Bundles](https://github.com/CellularSyntax/golgi/wiki/Reproducible-Study-Bundles).
 
 ## 📚 Documentation
