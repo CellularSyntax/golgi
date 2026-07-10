@@ -252,6 +252,20 @@ def _cmd_compute_worker(args) -> int:
     return 2
 
 
+def _cmd_fetch_tissue_db(args) -> int:
+    """Download + install the IT'IS tissue-properties database (from itis.swiss)."""
+    from golgi.conductivity.fetch_itis import fetch_itis_db
+    try:
+        fetch_itis_db(force=getattr(args, "force", False))
+        return 0
+    except Exception as ex:                              # noqa: BLE001
+        import sys
+        print(f"[golgi] IT'IS download failed: {ex}\n"
+              "        Download it manually — see resources/tissue_db/README.md.",
+              file=sys.stderr)
+        return 2
+
+
 def dispatch(argv: list[str]) -> "int | None":
     """Parse the leading subcommand off `argv` and run it.
     Returns the exit code (int) when a CLI command ran, or
@@ -260,7 +274,7 @@ def dispatch(argv: list[str]) -> "int | None":
     if not argv or argv[0] in ("--port", "-p", "--help", "-h"):
         return None
     if argv[0] not in (
-        "export", "import", "replay", "compute-worker",
+        "export", "import", "replay", "compute-worker", "fetch-tissue-db",
     ):
         return None
     parser = argparse.ArgumentParser(
@@ -369,6 +383,16 @@ def dispatch(argv: list[str]) -> "int | None":
         ),
     )
     p_worker.set_defaults(func=_cmd_compute_worker)
+
+    p_fetch = subs.add_parser(
+        "fetch-tissue-db",
+        help="Download the IT'IS tissue-properties database from itis.swiss.",
+    )
+    p_fetch.add_argument(
+        "--force", action="store_true",
+        help="Re-download even if a database is already installed.",
+    )
+    p_fetch.set_defaults(func=_cmd_fetch_tissue_db)
 
     args = parser.parse_args(argv)
     return args.func(args)

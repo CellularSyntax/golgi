@@ -33,6 +33,7 @@ preset only.
 """
 from __future__ import annotations
 
+import os
 import struct
 from pathlib import Path
 
@@ -43,10 +44,28 @@ from .cole_cole import cole_cole_sigma
 # ---------------------------------------------------------------------------
 # golgi/conductivity/itis_db.py → parents[2] = repo root.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-ITIS_DB_PATH: Path = (
-    _REPO_ROOT / "resources" / "tissue_db"
-    / "IT'IS_Material_database_V4.2.db"
-)
+_TISSUE_DB_DIR = _REPO_ROOT / "resources" / "tissue_db"
+
+
+def _resolve_itis_db_path() -> Path:
+    """Locate the user-provided IT'IS SQLite database. Honours $GOLGI_ITIS_DB,
+    else prefers a V4.2 then V4.1 file, else any ``*.db`` in
+    resources/tissue_db/. The DB is not shipped with golgi — fetch it with
+    ``python -m golgi.conductivity.fetch_itis`` or install it manually (see
+    resources/tissue_db/README.md)."""
+    env = os.environ.get("GOLGI_ITIS_DB")
+    if env:
+        return Path(env)
+    for _name in ("IT'IS_Material_database_V4.2.db",
+                  "IT'IS_Material_database_V4.1.db"):
+        _p = _TISSUE_DB_DIR / _name
+        if _p.exists():
+            return _p
+    _hits = sorted(_TISSUE_DB_DIR.glob("*.db"))
+    return _hits[0] if _hits else _TISSUE_DB_DIR / "IT'IS_Material_database_V4.2.db"
+
+
+ITIS_DB_PATH: Path = _resolve_itis_db_path()
 
 
 def load_itis_cole_cole_db(
@@ -69,11 +88,10 @@ def load_itis_cole_cole_db(
     out: dict[str, dict] = {}
     if not db_path.exists():
         print(
-            f"[golgi] IT'IS tissue database not found at {db_path} — using the "
-            "Custom Cole-Cole preset only. Download the free IT'IS material "
-            "database from https://itis.swiss/virtual-population/tissue-properties/ "
-            "and place IT'IS_Material_database_V4.2.db in resources/tissue_db/ to "
-            "enable the built-in tissue presets (see resources/tissue_db/README.md).",
+            "[golgi] IT'IS tissue database not found — using the Custom "
+            "Cole-Cole preset only. Fetch it with "
+            "`python -m golgi.conductivity.fetch_itis` (downloads V4-1 from "
+            "IT'IS), or install it manually (see resources/tissue_db/README.md).",
             flush=True,
         )
         return out
