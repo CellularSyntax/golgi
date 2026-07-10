@@ -163,57 +163,83 @@ def _sha256_file(p: Path) -> str:
     return h.hexdigest()
 
 
-def _ensure_threshold_sweep(proj: Path) -> str:
-    """Compute + cache an activation-threshold sweep on `proj` so the
-    exported bundle surfaces thresholds in the GUI's Sweep tab on import
-    (via <project>/sweeps/). Idempotent: skips if a sweep cache already
-    exists. Needs NEURON/pyfibers — returns a status string; on any
-    failure (no NEURON, no fibers/FEM on disk) it logs and returns the
-    reason so the bundle still exports, just without cached thresholds.
+# Per-bundle activation-threshold fiber classes. Each bundle reproduces
+# its own validation's fiber types; the cached sweep assigns these
+# (diameter µm, MRG/small-MRG model) round-robin across the bundle's
+# cached fibers and runs one threshold bisection per fiber, so the GUI's
+# threshold scatter shows the per-class thresholds on import.
+#
+# dog-VNS: A 7.8 / fast-B 3.6 / slow-B 2.1 µm MRG + small 1.0 µm
+# (validate_dogvns_native.py). Other bundles fall back to _DEFAULT_-
+# CLASSES until their validation classes are wired in — extract from the
+# matching fig*_thresholds / validate_* script.
+_DEFAULT_CLASSES = [
+    {"diam_um": 10.0, "model": "MRG_INTERPOLATION"},
+    {"diam_um": 5.7, "model": "MRG_INTERPOLATION"},
+    {"diam_um": 2.0, "model": "SMALL_MRG_INTERPOLATION"},
+]
+FIBER_CLASSES: dict[str, list[dict]] = {
+    "fig04a_dogvns_validation": [
+        {"diam_um": 7.8, "model": "MRG_INTERPOLATION"},
+        {"diam_um": 3.6, "model": "MRG_INTERPOLATION"},
+        {"diam_um": 2.1, "model": "MRG_INTERPOLATION"},
+        # C fibre — unmyelinated Tigerholm (MRG-family models reject
+        # diameters < 1.011 µm).
+        {"diam_um": 1.0, "model": "TIGERHOLM"},
+    ],
+}
 
-    The sweep runs one MRG threshold bisection per cached fiber at a
-    representative myelinated diameter. To reproduce the paper's per-
-    class (A/B/C) validation numbers, widen this to a population with
-    the validation diameters (see validate_dogvns_native.py DIAMS)."""
+
+def _ensure_threshold_sweep(proj: Path, fid: str) -> str:
+    """Compute + cache a per-class activation-threshold sweep on `proj`
+    so the exported bundle surfaces thresholds in the GUI's Sweep tab on
+    import (via <project>/sweeps/). Idempotent: skips if a sweep cache
+    already exists. Needs NEURON/pyfibers — returns a status string; on
+    any failure (no NEURON, no fibers/FEM on disk) it logs and returns
+    the reason so the bundle still exports, just without thresholds."""
     if (proj / "sweeps" / "latest.txt").is_file() or list(
         proj.glob("sweeps/sweep_*.npz")
     ):
         return "cached (already present)"
     try:
+        import numpy as np
         import golgi
         from golgi.jobs.schemas import SweepRequest
     except Exception as ex:                                  # noqa: BLE001
         return f"skip: golgi import failed ({ex})"
+    classes = FIBER_CLASSES.get(fid, _DEFAULT_CLASSES)
     try:
         s = golgi.Study.open(proj)
     except Exception as ex:                                  # noqa: BLE001
         return f"skip: could not open project ({ex})"
     try:
         info = s.load_cached_geometry()
-        if not info.get("n_fibers") or not info.get("n_ve_fibers"):
+        n = int(info.get("n_fibers") or 0)
+        if not n or not info.get("n_ve_fibers"):
             return (
                 f"skip: no cached fibers/field "
-                f"(fibers={info.get('n_fibers')}, "
-                f"Ve={info.get('n_ve_fibers')})"
+                f"(fibers={n}, Ve={info.get('n_ve_fibers')})"
             )
-        # Representative A-fibre diameter (7.8 µm, matches the dog-VNS
-        # validation's A class); the sweep amplitude bracket is wide
-        # enough to bisect any myelinated threshold.
-        try:
-            s._state.update({
-                "fiber_diameter_um": 7.8,
-                "fiber_model": "MRG_INTERPOLATION",
-            })
-        except Exception:                                    # noqa: BLE001
-            pass
+        # Assign the validation's fiber classes round-robin across the
+        # cached fibers → a population spanning the diameters/models.
+        diams = np.array(
+            [classes[i % len(classes)]["diam_um"] for i in range(n)],
+            dtype=np.float64,
+        )
+        models = [classes[i % len(classes)]["model"] for i in range(n)]
+        s._geom.fiber_pop_diameters_um = diams
+        s._geom.fiber_pop_types = models
         s.run_sweep(SweepRequest(
             mode="threshold",
             bisect_lo_mA=0.001,
             bisect_hi_mA=20.0,
             bisect_tol_uA=10.0,
-            model_source="single_fiber",
+            model_source="population",
         ))
-        return f"ok ({info['n_fibers']} fibers)"
+        cls = "/".join(f"{c['diam_um']:g}" for c in classes)
+        dflt = " (DEFAULT — validation classes not wired)" \
+            if fid not in FIBER_CLASSES else ""
+        return f"ok ({n} fibers, {len(classes)} classes {cls}µm){dflt}"
     except Exception as ex:                                  # noqa: BLE001
         return f"skip: sweep failed ({type(ex).__name__}: {ex})"
     finally:
@@ -247,7 +273,7 @@ def _export_one(spec: dict) -> dict | None:
 
     # Cache an activation-threshold sweep so the bundle shows thresholds
     # in the GUI on import (needs NEURON; skips cleanly if unavailable).
-    _sw = _ensure_threshold_sweep(proj)
+    _sw = _ensure_threshold_sweep(proj, fid)
     print(f"    threshold sweep: {_sw}", flush=True)
 
     out_zip = DEPOSIT / f"{fid}.golgi.zip"
