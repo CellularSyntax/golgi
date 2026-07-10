@@ -51,6 +51,7 @@ dependencies = [
     "trame",
     "trame-vuetify",
     "trame-vtk",
+    "pytest",
     "pyvista",
     "vtk",
     "gmsh",
