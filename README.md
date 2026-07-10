@@ -34,32 +34,32 @@ open finite-element stack with no commercial dependencies** (no COMSOL, ANSYS or
 
 ## ✨ Highlights
 
-- **🖱️ No-code graphical interface.** The entire image-to-recruitment pipeline runs in a browser-based
+- **No-code graphical interface.** The entire image-to-recruitment pipeline runs in a browser-based
   GUI — built for experimentalists and clinicians, not only computational modelers.
-- **🔓 Fully open solver stack.** Anisotropic finite-element fields via **FEniCSx/DOLFINx** and meshing
+- **Fully open solver stack.** Anisotropic finite-element fields via **FEniCSx/DOLFINx** and meshing
   via **TetGen/Gmsh** — no proprietary solver required.
-- **🧬 Genuine 3-D and branching anatomy.** Reconstructs real three-dimensional nerves and traces
+- **Genuine 3-D and branching anatomy.** Reconstructs real three-dimensional nerves and traces
   curved, fascicle-following fiber trajectories *through bifurcations*, enabling **branch-selective**
   stimulation analysis that straight-fiber, cross-section-only tools cannot address.
-- **🔬 Realistic biophysics.** Activation thresholds via interchangeable **NEURON (PyFibers)** and
+- **Realistic biophysics.** Activation thresholds via interchangeable **NEURON (PyFibers)** and
   **AxonML GPU-surrogate** backends, with literature-backed fiber populations and tissue properties
   (Cole–Cole / IT'IS), and explicit **perineurium contact impedance**.
-- **🎛️ Current steering & selectivity.** Arbitrary multi-contact (tri-/quadri-/N-polar) montages,
+- **Current steering & selectivity.** Arbitrary multi-contact (tri-/quadri-/N-polar) montages,
   recruitment curves, fascicular and branch selectivity, and side-by-side design comparison.
-- **✅ Verifiable reproducibility.** Every study exports as an integrity-hashed, self-contained bundle
+- **Verifiable reproducibility.** Every study exports as an integrity-hashed, self-contained bundle
   whose image-to-recruitment provenance is checkable byte-for-byte with a single command.
 
 ## 🧠 The pipeline
 
 ```mermaid
 flowchart LR
-    A["🖼️ Image / surface / mask"] --> B["✂️ Promptable<br/>segmentation"]
-    B --> C["🧱 Multi-region<br/>tetrahedral mesh"]
-    C --> D["⚡ Anisotropic FEM<br/>+ perineurium CI<br/>(lead fields)"]
-    D --> E["🧵 Fiber populations<br/>curved 3-D trajectories"]
-    E --> F["🌶️ Activation thresholds<br/>NEURON / AxonML"]
-    F --> G["📈 Recruitment ·<br/>selectivity · steering"]
-    G --> H["📦 Hashed, replayable<br/>study bundle"]
+    A["Image / surface / mask"] --> B["Promptable<br/>segmentation"]
+    B --> C["Multi-region<br/>tetrahedral mesh"]
+    C --> D["Anisotropic FEM<br/>+ perineurium CI<br/>(lead fields)"]
+    D --> E["Fiber populations<br/>curved 3-D trajectories"]
+    E --> F["Activation thresholds<br/>NEURON / AxonML"]
+    F --> G["Recruitment ·<br/>selectivity · steering"]
+    G --> H["Hashed, replayable<br/>study bundle"]
 ```
 
 Endoneurium, epineurium, electrode, cuff, and surrounding bath are meshed and solved with anisotropic
