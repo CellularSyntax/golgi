@@ -39,23 +39,13 @@ from __future__ import annotations
 # trame — TRAME_WS_MAX_MSG_SIZE is the knob that actually wins.
 # Set both, BEFORE any import below pulls wslink/trame in.
 #
-# ~4 GB default: some validation bundles (dense meshes + full FEM
+# 4 GB default: some validation bundles (dense meshes + full FEM
 # fields) push a scene well over 1 GB in a single frame. Both are
 # `setdefault`, so a user can tune it up or down via the shell env
 # (e.g. TRAME_WS_MAX_MSG_SIZE) — a very large scene is memory-heavy
 # on both server and browser, but the cap must not be the blocker.
-#
-# NOTE: aiohttp's WebSocketReader C extension stores max_msg_size in
-# a 32-bit unsigned int, so the value actually passed to it must stay
-# <= 2**32 - 1 (4294967295). But wslink's aiohttp backend adds its own
-# WSLINK_MSG_OVERHEAD (default 4096) on top of WSLINK_MAX_MSG_SIZE
-# before handing it to WebSocketReader:
-#   max_msg_size = MSG_OVERHEAD + MAX_MSG_SIZE
-# so this cap must leave that headroom, or it silently overflows and
-# crashes every WebSocket connection with:
-#   OverflowError: value too large to convert to unsigned int
 import os as _os
-_MAX_WS_BYTES = str(2**32 - 1 - 4096)
+_MAX_WS_BYTES = str(4 * 1024 * 1024 * 1024)
 _os.environ.setdefault("WSLINK_MAX_MSG_SIZE", _MAX_WS_BYTES)
 _os.environ.setdefault("TRAME_WS_MAX_MSG_SIZE", _MAX_WS_BYTES)
 
@@ -12801,6 +12791,29 @@ def build_app(port: int) -> None:
         without running the subprocess."""
         npz_path = GOLGI_OUT / "nerve_paths_fibers.npz"
         caps_json = GOLGI_OUT / "nerve_paths_caps.json"
+        # Multi-design + bundle layout: fibers live under
+        # designs/<eid>/nerve_paths_fibers.npz, not the flat root.
+        # Prefer the selected design's copy, else the first design
+        # that has one.
+        if not npz_path.exists():
+            _designs_root = GOLGI_OUT / "designs"
+            _sel = str(getattr(state, "selected_design_id", "") or "")
+            _cands = []
+            if _sel:
+                _cands.append(_designs_root / _sel)
+            if _designs_root.is_dir():
+                _cands.extend(
+                    d for d in sorted(_designs_root.iterdir())
+                    if d.is_dir()
+                )
+            for _dd in _cands:
+                _p = _dd / "nerve_paths_fibers.npz"
+                if _p.is_file():
+                    npz_path = _p
+                    _cj = _dd / "nerve_paths_caps.json"
+                    if _cj.is_file():
+                        caps_json = _cj
+                    break
         if not npz_path.exists():
             return False
         try:
@@ -13383,6 +13396,125 @@ def build_app(port: int) -> None:
         state.show_new_project_dialog = False
         await do_open_project(str(pdir))
 
+    def _reconstruct_workspace_from_disk(pdir: Path) -> int:
+        """Rebuild state.designs + state.configs from a project's
+        on-disk designs/ + configs/ artifacts when the manifest
+        carried no GUI ui_state.
+
+        Headless-built projects (the Duke/ASCENT pipeline and the
+        study bundles exported from them) write designs/<eid>/nerve.msh
+        and configs/<cid>/electrode_config.json directly but never
+        create the GUI's design/config workspace state — project.json
+        `ui_state` is empty. Without state.designs the Mesh/Materials/
+        Simulate tabs stay disabled and the cached mesh never restores.
+
+        We rebuild that state with the SAME builders the GUI uses when
+        a user places a cuff (`_new_electrode_default` / `_create_config`),
+        so the reconstructed dicts are schema-identical. The mesh, FEM
+        fields and cuff geometry all render from cached disk files, so a
+        design entry only needs its identity + defaults. Returns the
+        number of designs reconstructed (0 = nothing to do)."""
+        designs_root = pdir / "designs"
+        if not designs_root.is_dir():
+            return 0
+        eids = [
+            d.name for d in sorted(designs_root.iterdir())
+            if d.is_dir() and (d / "nerve.msh").is_file()
+        ]
+        if not eids:
+            return 0
+
+        configs_root = pdir / "configs"
+        cfg_manifests: list[tuple[str, dict]] = []
+        if configs_root.is_dir():
+            for cdir in sorted(configs_root.iterdir()):
+                mf = cdir / "manifest.json"
+                if not mf.is_file():
+                    continue
+                try:
+                    cfg_manifests.append(
+                        (cdir.name,
+                         json.loads(mf.read_text(encoding="utf-8"))),
+                    )
+                except Exception:                            # noqa: BLE001
+                    continue
+
+        def _cfg_for_design(eid: str) -> dict:
+            for _cid, mm in cfg_manifests:
+                if str(mm.get("design_id", "")) == eid:
+                    return mm
+            return {}
+
+        new_designs: list[dict] = []
+        for eid in eids:
+            mm = _cfg_for_design(eid)
+            dname = str(mm.get("design_name") or eid)
+            d = _new_electrode_default(eid, dname)
+            # Map the solved electrode type back onto the design when
+            # the config's electrode_config.json names a known type
+            # (e.g. "helical (Livanova-style)"); otherwise the default
+            # bipolar type stands — it only affects the cuff-designer
+            # UI, not the cached mesh/FEM that render from disk.
+            _cid = next(
+                (c for c, m in cfg_manifests
+                 if str(m.get("design_id", "")) == eid), None,
+            )
+            if _cid is not None:
+                _ec = configs_root / _cid / "electrode_config.json"
+                if _ec.is_file():
+                    try:
+                        _nm = str(json.loads(
+                            _ec.read_text(encoding="utf-8"),
+                        ).get("name", ""))
+                        if _nm in ELECTRODE_TYPES:
+                            d["electrode_type"] = _nm
+                    except Exception:                        # noqa: BLE001
+                        pass
+            d["contact_polarities"] = _default_polarities(d)
+            d["contact_current_fractions"] = (
+                [None] * len(d["contact_polarities"])
+            )
+            new_designs.append(d)
+
+        state.designs = new_designs
+        state.selected_design_id = new_designs[0]["eid"]
+        state.next_design_seq = len(new_designs) + 1
+        state.mesh_design_selection = [d["eid"] for d in new_designs]
+
+        # Rebuild configs via the same builder, preserving each
+        # config's design binding + stimulus amplitude.
+        state.configs = []
+        state.next_config_seq = 1
+        for _cid, mm in cfg_manifests:
+            did = str(mm.get("design_id") or new_designs[0]["eid"])
+            if _find_design(did) is None:
+                did = new_designs[0]["eid"]
+            _create_config(
+                did,
+                str(mm.get("name") or _cid),
+                i_stim_ma=float(mm.get("I_stim_mA") or 1.0),
+            )
+        if state.configs:
+            _first_cid = str(state.configs[0].get("cid", ""))
+            state.selected_config_id = _first_cid
+            state.active_config_id = _first_cid
+            state.solve_config_selection = [
+                str(c.get("cid", "")) for c in state.configs
+            ]
+
+        # Materials were committed for any solved project (the FEM ran
+        # against on-disk σ). Flip the gate so the Materials + Simulate
+        # tabs unlock; the actual σ values load from conductivities.json
+        # / defaults via _apply_persisted_sigma.
+        state.sigma_committed = True
+        print(
+            f"[open] reconstructed workspace from disk: "
+            f"{len(new_designs)} design(s), {len(cfg_manifests)} "
+            f"config(s) (project had no ui_state)",
+            flush=True,
+        )
+        return len(new_designs)
+
     @gated("project_open")
     async def do_open_project(pdir_str: str):
         """Activate the project at `pdir_str` and restore every
@@ -13441,16 +13573,41 @@ def build_app(port: int) -> None:
         # layout) OR under fem/<design_id>/. We "have" FEM when
         # either form is detectable.
         _fem_designs_peek = _fem_layout.enumerate_designs(pdir)
-        _has_fem_peek = bool(_fem_designs_peek) and any(
-            (
-                _fem_layout.fem_design_dir(pdir, _d["id"])
-                / "axis_line.npz"
-            ).exists()
-            for _d in _fem_designs_peek
+        # Per-config layout (F3.2c) is what `_restore_fem_from_disk`
+        # actually prefers — check it FIRST so config-based bundles
+        # (headless / Duke pipeline) don't fall through with the FEM
+        # gate stuck off while the outputs sit in configs/<cid>/.
+        _fem_configs_peek = _fem_layout.enumerate_configs(pdir)
+        _has_fem_peek = (
+            (bool(_fem_configs_peek) and any(
+                (
+                    _fem_layout.config_dir(pdir, _c["id"])
+                    / "axis_line.npz"
+                ).exists()
+                for _c in _fem_configs_peek
+            ))
+            or (bool(_fem_designs_peek) and any(
+                (
+                    _fem_layout.fem_design_dir(pdir, _d["id"])
+                    / "axis_line.npz"
+                ).exists()
+                for _d in _fem_designs_peek
+            ))
         )
+        # Fibers live at the flat root (legacy) OR under a design
+        # folder (designs/<eid>/nerve_paths_fibers.npz — the multi-
+        # design + bundle layout). Detect either.
         _has_fibers_peek = (
-            pdir / "nerve_paths_fibers.npz"
-        ).exists()
+            (pdir / "nerve_paths_fibers.npz").exists()
+            or (
+                (pdir / "designs").is_dir()
+                and any(
+                    (_d / "nerve_paths_fibers.npz").is_file()
+                    for _d in (pdir / "designs").iterdir()
+                    if _d.is_dir()
+                )
+            )
+        )
         # Single-fiber + population sim caches each live in their
         # own pickle in the project dir. The "Restoring
         # simulation cache" step only fires if at least one of
@@ -13555,6 +13712,20 @@ def build_app(port: int) -> None:
                 manifest.get("last_modified", ""),
             )
             _apply_ui_state(manifest.get("ui_state", {}))
+            # Headless-built projects / study bundles carry an empty
+            # ui_state, so `designs` restored above is empty even though
+            # designs/<eid>/ + configs/<cid>/ exist on disk. Rebuild the
+            # workspace from those artifacts so the Mesh/Materials/
+            # Simulate tabs unlock and the cached mesh/FEM restore.
+            if not (state.designs or []):
+                try:
+                    _reconstruct_workspace_from_disk(pdir)
+                except Exception as _ex:                     # noqa: BLE001
+                    print(
+                        f"[open] workspace reconstruction failed: "
+                        f"{type(_ex).__name__}: {_ex}",
+                        flush=True,
+                    )
             # M17 — restore µCT-bundle import flags from the
             # top-level manifest. `_write_manifest` stores
             # `import_source_type` and `uct_bundle_id` at the
