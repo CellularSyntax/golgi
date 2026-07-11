@@ -47,7 +47,7 @@ flowchart LR
     A["Image / surface / mask"] --> B["Promptable<br/>segmentation"]
     B --> C["Multi-region<br/>tetrahedral mesh"]
     C --> D["Anisotropic FEM<br/>+ perineurium CI<br/>(lead fields)"]
-    D --> E["Fiber populations<br/>curved 3-D trajectories"]
+    D --> E["Fiber populations<br/>curved 3D trajectories"]
     E --> F["Activation thresholds<br/>NEURON / AxonML"]
     F --> G["Recruitment ·<br/>selectivity · steering"]
     G --> H["Hashed, replayable<br/>study bundle"]
@@ -62,7 +62,7 @@ per-contact lead fields. See
 ## 🆚 How golgi compares
 
 golgi's contribution is the combination most peripheral-nerve tools split apart: a **no-code GUI**,
-**genuine 3-D branching anatomy**, **and** a **fully open** (no-COMSOL) solver stack — with
+**genuine 3D branching anatomy**, **and** a **fully open** solver stack — with
 reproducible study bundles on top.
 
 <div style="font-size:90%;">
@@ -71,7 +71,7 @@ reproducible study bundles on top.
 |:--|:--:|:--:|:--:|:--:|:--:|
 | Graphical interface | ✅ | ❌ | ❌ | ✅ | ❌ |
 | Fully open-source¹ | ✅ | ◐ | ✅ | ❌ | ◐ |
-| 3-D nerve geometries | ✅ | ◐ | ◐ | ✅ | ◐ |
+| 3D nerve geometries | ✅ | ◐ | ◐ | ✅ | ◐ |
 | Curved fibers through branches | ✅ | ❌ | ❌ | ✅ | ◐ |
 | Multiple fiber backends | ✅ | ✅ | ◐ | ◐ | ◐ |
 | Reproducible bundled workflows² | ✅ | ◐ | ◐ | ◐ | ❌ |
@@ -153,7 +153,7 @@ s.set_electrodes([{                               # a 4×5 segmented ring array
 s.run_mesh()                                      # multi-region TetGen mesh
 s.run_fem()                                       # anisotropic FEM + per-contact lead fields
 s.set_fiber_seed(n_fibers=600, fiber_method="streamlines")
-s.run_fibers()                                    # curved 3-D trajectories
+s.run_fibers()                                    # curved 3D trajectories
 result = s.run_sweep(SweepRequest(                # recruitment across amplitude
     mode="recruitment", amplitudes_mA=[0.1, 0.25, 0.5, 1.0, 2.0]))
 s.export_bundle("vagus_study.golgi")              # integrity-hashed, replayable bundle
@@ -214,8 +214,8 @@ golgi/
 │   ├── pipeline/       # mesh · fem · fibers · fiber_sim · sweep · selectivity · recording
 │   ├── compute/        # FEniCSx solvers + TetGen/Gmsh runners
 │   ├── conductivity/   # Cole–Cole · IT'IS DB · perineurium
-│   ├── segmentation/   # promptable image segmentation + 3-D reconstruction
-│   ├── scene/          # 3-D scene, cuff fitting, electrode patches
+│   ├── segmentation/   # promptable image segmentation + 3D reconstruction
+│   ├── scene/          # 3D scene, cuff fitting, electrode patches
 │   ├── figures/        # figure registry · export presets · PDF report
 │   ├── projects/       # study bundles · replay · sweep cache
 │   ├── jobs/           # in-process · subprocess · SLURM runners
@@ -252,7 +252,7 @@ golgi stands on an all-open scientific stack:
 | Meshing | [Gmsh](https://gmsh.info/) (surfaces) · [TetGen](https://wias-berlin.de/software/tetgen/) (tetrahedral volumes) · [meshio](https://github.com/nschloe/meshio) |
 | Fiber biophysics & thresholds | [NEURON](https://www.neuron.yale.edu/) + [PyFibers](https://github.com/wmglab-duke/pyfibers); [AxonML](https://github.com/wmglab-duke/axonml) (optional GPU surrogate) |
 | Tissue properties | [IT'IS Foundation material database](https://itis.swiss/virtual-population/tissue-properties/) |
-| 3-D visualization & rendering | [PyVista](https://pyvista.org/) · [VTK](https://vtk.org/) |
+| 3D visualization & rendering | [PyVista](https://pyvista.org/) · [VTK](https://vtk.org/) |
 | Graphical interface | [Trame](https://kitware.github.io/trame/) + Vuetify (browser-based) |
 | Geometry & segmentation | [scikit-image](https://scikit-image.org/) · [OpenCV](https://opencv.org/) · [SimpleITK](https://simpleitk.org/) · [trimesh](https://trimesh.org/) · [PyMeshFix](https://github.com/pyvista/pymeshfix) |
 | Numerics & figures | [NumPy](https://numpy.org/) · [SciPy](https://scipy.org/) · [Matplotlib](https://matplotlib.org/) · [Plotly](https://plotly.com/python/) |
