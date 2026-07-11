@@ -55,8 +55,7 @@ flowchart LR
 
 Endoneurium, epineurium, electrode, cuff, and surrounding bath are meshed and solved with anisotropic
 conductivities — with the perineurium represented as a contact-impedance interface — and reusable
-per-contact lead fields. See
-[`FEATURES.md`](FEATURES.md) for the full feature surface and the
+per-contact lead fields. See the 
 [wiki](https://github.com/CellularSyntax/golgi/wiki/Pipeline-Overview) for the details of each stage.
 
 ## 🆚 How golgi compares
