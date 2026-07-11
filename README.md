@@ -1,4 +1,4 @@
-<img width="1664" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec324ff7-17e7-418f-94f2-5f36d16907a0" /><p align="center">
+<p align="center">
   <img src="docs/golgi_static_one_line.png" alt="golgi" width="300">
 </p>
 
@@ -42,6 +42,7 @@ open finite-element stack with no commercial dependencies** (no COMSOL, ANSYS or
 
 ## See the workflow in action
 
+<img width="1664" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec324ff7-17e7-418f-94f2-5f36d16907a0" />
 The browser-based graphical interface guides users through the complete image-to-recruitment workflow: import or segment a nerve, design the cuff and electrodes, generate the finite-element mesh, solve the electric field, populate realistic fiber trajectories, and analyze recruitment and selectivity. Every operation performed in the GUI is mirrored by the Python API and command-line interface, allowing interactive studies to scale seamlessly to scripted and high-performance workflows.
 
 Follow the step-by-step **[GUI Tutorial](https://github.com/CellularSyntax/golgi/wiki/Tutorial)** to build your first study, or see the **[Pipeline Overview](https://github.com/CellularSyntax/golgi/wiki/Pipeline-Overview)** for the algorithms and implementation details behind each stage.
