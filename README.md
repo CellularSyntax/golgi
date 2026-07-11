@@ -1,4 +1,4 @@
-<p align="center">
+<img width="1664" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec324ff7-17e7-418f-94f2-5f36d16907a0" /><p align="center">
   <img src="docs/golgi_static_one_line.png" alt="golgi" width="300">
 </p>
 
@@ -40,23 +40,11 @@ open finite-element stack with no commercial dependencies** (no COMSOL, ANSYS or
 - **Verifiable reproducibility.** Every study exports as an integrity-hashed, self-contained bundle
   whose image-to-recruitment provenance is checkable byte-for-byte with a single command.
 
-## The pipeline
+## See the workflow in action
 
-```mermaid
-flowchart LR
-    A["Image / surface / mask"] --> B["Promptable<br/>segmentation"]
-    B --> C["Multi-region<br/>tetrahedral mesh"]
-    C --> D["Anisotropic FEM<br/>+ perineurium CI<br/>(lead fields)"]
-    D --> E["Fiber populations<br/>curved 3D trajectories"]
-    E --> F["Activation thresholds<br/>NEURON / AxonML"]
-    F --> G["Recruitment ·<br/>selectivity · steering"]
-    G --> H["Hashed, replayable<br/>study bundle"]
-```
+The browser-based graphical interface guides users through the complete image-to-recruitment workflow: import or segment a nerve, design the cuff and electrodes, generate the finite-element mesh, solve the electric field, populate realistic fiber trajectories, and analyze recruitment and selectivity. Every operation performed in the GUI is mirrored by the Python API and command-line interface, allowing interactive studies to scale seamlessly to scripted and high-performance workflows.
 
-Endoneurium, epineurium, electrode, cuff, and surrounding bath are meshed and solved with anisotropic
-conductivities — with the perineurium represented as a contact-impedance interface — and reusable
-per-contact lead fields. See the 
-[wiki](https://github.com/CellularSyntax/golgi/wiki/Pipeline-Overview) for the details of each stage.
+Follow the step-by-step **[GUI Tutorial](https://github.com/CellularSyntax/golgi/wiki/Tutorial)** to build your first study, or see the **[Pipeline Overview](https://github.com/CellularSyntax/golgi/wiki/Pipeline-Overview)** for the algorithms and implementation details behind each stage.
 
 ## How golgi compares
 
