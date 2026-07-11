@@ -41,8 +41,8 @@ open finite-element stack with no commercial dependencies** (no COMSOL, ANSYS or
 - **Genuine 3-D and branching anatomy.** Reconstructs real three-dimensional nerves and traces
   curved, fascicle-following fiber trajectories *through bifurcations*, enabling **branch-selective**
   stimulation analysis that straight-fiber, cross-section-only tools cannot address.
-- **Realistic biophysics.** Activation thresholds via interchangeable **NEURON (PyFibers)** and
-  **AxonML GPU-surrogate** backends, with literature-backed fiber populations and tissue properties
+- **Realistic biophysics.** Activation thresholds via interchangeable **NEURON ([PyFibers](https://github.com/wmglab-duke/pyfibers))** and
+  **[AxonML](https://github.com/wmglab-duke/axonml) GPU-surrogate** backends, with literature-backed fiber populations and tissue properties
   (Cole–Cole / IT'IS), and explicit **perineurium contact impedance**.
 - **Current steering & selectivity.** Arbitrary multi-contact (tri-/quadri-/N-polar) montages,
   recruitment curves, fascicular and branch selectivity, and side-by-side design comparison.
@@ -259,7 +259,7 @@ golgi stands on an all-open scientific stack:
 |---|---|
 | Finite-element field solver | [FEniCSx/DOLFINx](https://fenicsproject.org/) · [PETSc/SLEPc](https://petsc.org/) (MUMPS sparse direct solve) |
 | Meshing | [Gmsh](https://gmsh.info/) (surfaces) · [TetGen](https://wias-berlin.de/software/tetgen/) (tetrahedral volumes) · [meshio](https://github.com/nschloe/meshio) |
-| Fiber biophysics & thresholds | [NEURON](https://www.neuron.yale.edu/) + [PyFibers](https://github.com/wmglab-duke/pyfibers) (MRG); AxonML (optional GPU surrogate) |
+| Fiber biophysics & thresholds | [NEURON](https://www.neuron.yale.edu/) + [PyFibers](https://github.com/wmglab-duke/pyfibers); [AxonML](https://github.com/wmglab-duke/axonml) (optional GPU surrogate) |
 | Tissue properties | [IT'IS Foundation material database](https://itis.swiss/virtual-population/tissue-properties/) |
 | 3-D visualization & rendering | [PyVista](https://pyvista.org/) · [VTK](https://vtk.org/) |
 | Graphical interface | [Trame](https://kitware.github.io/trame/) + Vuetify (browser-based) |
