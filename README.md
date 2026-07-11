@@ -40,7 +40,7 @@ open finite-element stack with no commercial dependencies** (no COMSOL, ANSYS or
 - **Verifiable reproducibility.** Every study exports as an integrity-hashed, self-contained bundle
   whose image-to-recruitment provenance is checkable byte-for-byte with a single command.
 
-## 🧠 The pipeline
+## The pipeline
 
 ```mermaid
 flowchart LR
@@ -58,7 +58,7 @@ conductivities — with the perineurium represented as a contact-impedance inter
 per-contact lead fields. See the 
 [wiki](https://github.com/CellularSyntax/golgi/wiki/Pipeline-Overview) for the details of each stage.
 
-## 🆚 How golgi compares
+## How golgi compares
 
 golgi's contribution is the combination most peripheral-nerve tools split apart: a **no-code GUI**,
 **genuine 3D branching anatomy**, **and** a **fully open** solver stack — with
@@ -80,7 +80,7 @@ reproducible study bundles on top.
 <sub>**Legend:** ✅ Supported &nbsp;&nbsp; ◐ Partial support &nbsp;&nbsp; ❌ Not supported. ¹ Requires no commercial FEM solver. ASCENT uses COMSOL for finite-element modeling (FEM); NRV uses FEniCS. ² One-command, hashed, reproducible simulation bundles. ³ **DIY** refers to a custom workflow assembled from NEURON and a finite-element solver (e.g., FEniCS or COMSOL), with capabilities depending on the implementation. Comparison reflects typical/default usage and is meant to position golgi, not to exhaustively
 rank tools — each of the above is excellent within its design goals.</sub>
 
-## 🖥️ Three interfaces, one study
+## Three interfaces, one study
 
 Every operation acts on a single shared `golgi.Study` state, so a graphical session, a script, and a
 batch job are fully interchangeable:
@@ -89,7 +89,7 @@ batch job are fully interchangeable:
 - **Python API** (`golgi.Study`) — mirrors every GUI action for scripting and batch studies.
 - **Command-line interface** (`golgi …`) — for cluster and continuous-integration use.
 
-## 📦 Installation
+## Installation
 
 golgi's compiled scientific core — **FEniCSx/DOLFINx** — is installed with conda/mamba; golgi and the
 rest of its dependencies then install with pip:
@@ -122,7 +122,7 @@ segmentation, with a stub-segmenter fallback) are documented on the
 [**Installation**](https://github.com/CellularSyntax/golgi/wiki/Installation) wiki page. A pinned
 version snapshot of a known-good environment is in [`requirements-frozen.txt`](requirements-frozen.txt).
 
-## 🚀 Quick start
+## Quick start
 
 **Launch the graphical interface:**
 
@@ -161,7 +161,7 @@ s.export_bundle("vagus_study.golgi")              # integrity-hashed, replayable
 A complete, runnable version is in [`examples/recruitment_sweep.py`](examples/recruitment_sweep.py)
 (it runs on a built-in synthetic nerve, no data required).
 
-## 🔁 Reproducible study bundles
+## Reproducible study bundles
 
 Any study exports as a single `.golgi` bundle whose `MANIFEST.json` records the pipeline directed
 acyclic graph with a SHA-256 hash of every input, output, and stage, plus the exact software version
@@ -188,7 +188,7 @@ golgi figure <bundle.golgi.zip>             # render quick-look panels
 
 See [Reproducible Study Bundles](https://github.com/CellularSyntax/golgi/wiki/Reproducible-Study-Bundles).
 
-## 📚 Documentation
+## Documentation
 
 Full documentation, tutorials, and reference live in the
 [**project wiki**](https://github.com/CellularSyntax/golgi/wiki):
@@ -202,7 +202,7 @@ Full documentation, tutorials, and reference live in the
 | [Headless / HPC](https://github.com/CellularSyntax/golgi/wiki/Headless-and-HPC) | [Figures & Reports](https://github.com/CellularSyntax/golgi/wiki/Figures-and-Reports) | [Architecture](https://github.com/CellularSyntax/golgi/wiki/Architecture) |
 | [Troubleshooting & FAQ](https://github.com/CellularSyntax/golgi/wiki/Troubleshooting-and-FAQ) | [Reproducing the Paper](https://github.com/CellularSyntax/golgi/wiki/Reproducing-the-Paper) | [Validation](https://github.com/CellularSyntax/golgi/wiki/Validation) |
 
-## 🗂️ Repository layout
+## Repository layout
 
 ```text
 golgi/
@@ -226,7 +226,7 @@ golgi/
 └── tests/              # headless API + cable-equation tests
 ```
 
-## ⚖️ License
+## License
 
 golgi is free and open-source software under the **GNU Affero General Public License, version 3 or
 later (AGPL-3.0-or-later)** — see [LICENSE](LICENSE).
@@ -241,7 +241,7 @@ commercial** product additionally requires separate commercial licenses for TetG
 **Data** released alongside golgi — the micro-CT imaging datasets and the golgi study bundles
 (Zenodo) — is licensed separately under **CC-BY-4.0**.
 
-## 🙏 Built with
+## Built with
 
 golgi stands on an all-open scientific stack:
 
