@@ -74,15 +74,20 @@ golgi's contribution is the combination most peripheral-nerve tools split apart:
 **genuine 3-D branching anatomy**, **and** a **fully open** (no-COMSOL) solver stack — with
 reproducible study bundles on top.
 
-| | **golgi** | [ASCENT](https://github.com/wmglab-duke/ascent) | [NRV](https://github.com/nrv-framework/NRV) | [Sim4Life](https://sim4life.swiss/) | DIY ([NEURON](https://www.neuron.yale.edu/) + FEM) |
-|---|:---:|:---:|:---:|:---:|:---:|
-| No-code GUI | ✅ | ❌ (JSON/Python) | ❌ (Python) | ✅ | ❌ |
-| Fully open / no commercial solver | ✅ | ⚠️ FEM via COMSOL | ✅ (FEniCS) | ❌ commercial | ⚠️ varies |
-| 3-D nerves + curved fibers through branches | ✅ | ⚠️ 2-D cross-section, straight fibers | ⚠️ extruded fascicles, straight fibers | ✅ | ⚠️ varies |
-| Interchangeable NEURON + GPU fiber backends | ✅ | ✅ (NEURON) | ⚠️ (NEURON) | ⚠️ | ⚠️ |
-| One-command reproducible, hashed bundles | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ |
+<div style="font-size:90%;">
 
-<sub>Comparison reflects typical/default usage and is meant to position golgi, not to exhaustively
+| Feature | **golgi** | [ASCENT](https://github.com/wmglab-duke/ascent) | [NRV](https://github.com/nrv-framework/NRV) | [Sim4Life](https://sim4life.swiss/) | **DIY** |
+|:--|:--:|:--:|:--:|:--:|:--:|
+| Graphical interface | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Fully open-source¹ | ✅ | ◐ | ✅ | ❌ | ◐ |
+| 3-D nerve geometries | ✅ | ◐ | ◐ | ✅ | ◐ |
+| Curved fibers through branches | ✅ | ❌ | ❌ | ✅ | ◐ |
+| Multiple fiber backends | ✅ | ✅ | ◐ | ◐ | ◐ |
+| Reproducible bundled workflows² | ✅ | ◐ | ◐ | ◐ | ❌ |
+
+</div>
+
+<sub>**Legend:** ✅ Supported &nbsp;&nbsp; ◐ Partial support &nbsp;&nbsp; ❌ Not supported. ¹ Requires no commercial FEM solver. ASCENT uses COMSOL for finite-element modeling (FEM); NRV uses FEniCS. ² One-command, hashed, reproducible simulation bundles. ³ **DIY** refers to a custom workflow assembled from NEURON and a finite-element solver (e.g., FEniCS or COMSOL), with capabilities depending on the implementation. Comparison reflects typical/default usage and is meant to position golgi, not to exhaustively
 rank tools — each of the above is excellent within its design goals.</sub>
 
 ## 🖥️ Three interfaces, one study
