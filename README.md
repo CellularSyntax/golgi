@@ -76,7 +76,7 @@ reproducible study bundles on top.
 
 <div style="font-size:90%;">
 
-| Feature | **golgi** | [ASCENT](https://github.com/wmglab-duke/ascent) | [NRV](https://github.com/nrv-framework/NRV) | [Sim4Life](https://sim4life.swiss/) | **DIY** |
+| Feature | **golgi** | [ASCENT](https://github.com/wmglab-duke/ascent) | [NRV](https://github.com/nrv-framework/NRV) | [Sim4Life](https://sim4life.swiss/) | **DIY** ³ |
 |:--|:--:|:--:|:--:|:--:|:--:|
 | Graphical interface | ✅ | ❌ | ❌ | ✅ | ❌ |
 | Fully open-source¹ | ✅ | ◐ | ✅ | ❌ | ◐ |
