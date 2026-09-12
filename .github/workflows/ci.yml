@@ -122,10 +122,18 @@ jobs:
           tags: golgi:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Solver-free tests inside the image
-        run: docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp golgi:ci python -m pytest -q -rs /opt/golgi/tests --deselect /opt/golgi/tests/test_e2e_reference.py --deselect /opt/golgi/tests/test_headless_api.py::test_end_to_end_pipeline
+      - name: Solver-free (tier 1) tests inside the image
+        # -w /opt/golgi so pytest rootdir is the repo and the --deselect nodeids
+        # (relative to rootdir) actually match; otherwise the heavy tests run and OOM.
+        run: >-
+          docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp -w /opt/golgi golgi:ci
+          python -m pytest -q -rs tests
+          --deselect tests/test_e2e_reference.py
+          --deselect tests/test_headless_api.py::test_end_to_end_pipeline
       - name: End-to-end regression test inside the image (light profile)
-        run: docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp -e GOLGI_E2E_PROFILE=light golgi:ci python -m pytest -q -rs --durations=5 /opt/golgi/tests/test_e2e_reference.py
+        run: >-
+          docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp -e GOLGI_E2E_PROFILE=light -w /opt/golgi golgi:ci
+          python -m pytest -q -rs --durations=5 tests/test_e2e_reference.py
       - name: Benchmark (light profile) + bundle verification inside the image
         run: |
           mkdir -p out
