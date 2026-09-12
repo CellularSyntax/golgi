@@ -136,7 +136,7 @@ jobs:
           python -m pytest -q -rs --durations=5 tests/test_e2e_reference.py
       - name: Benchmark (light profile) + bundle verification inside the image
         run: |
-          mkdir -p out
+          mkdir -p out && chmod 777 out   # container runs as its own uid; let it write the report
           docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp -v "$PWD/out:/out" -w /tmp golgi:ci \
             bash -lc "python /opt/golgi/examples/benchmark.py --fibers 12 --profile light --project /tmp/bench_project --out /out/benchmark_docker.json --label docker-ci-light-\$(uname -m) \
                       && golgi replay /tmp/bench_project_study.zip --json > /out/replay_docker.json && echo REPLAY_OK"
