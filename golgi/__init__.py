@@ -17,7 +17,13 @@ build the workspace; it only makes the headless `Study` API
 reachable for scripts and notebooks.
 """
 
-__all__ = ["Study"]
+__all__ = ["Study", "__version__"]
+
+try:  # single source of truth is pyproject.toml → installed metadata
+    from importlib.metadata import version as _pkg_version
+    __version__ = _pkg_version("golgi")
+except Exception:  # noqa: BLE001 — running from a bare checkout
+    __version__ = "1.1.0"
 
 
 def __getattr__(name: str):

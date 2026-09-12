@@ -1,0 +1,19 @@
+# docker compose -f docker/docker-compose.yml up
+# → GUI at http://localhost:8080 ; studies persist in ./golgi_data on the host.
+services:
+  golgi:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: golgi:1.1.0
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../golgi_data:/data
+    environment:
+      GOLGI_PROJECTS_ROOT: /data
+    # Uncomment to give the FEM/NEURON workers more room on big models:
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 16g

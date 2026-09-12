@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import os
 import struct
+import sys
 from pathlib import Path
 
 from .cole_cole import cole_cole_sigma
@@ -92,7 +93,7 @@ def load_itis_cole_cole_db(
             "Cole-Cole preset only. Fetch it with "
             "`python -m golgi.conductivity.fetch_itis` (downloads V4-1 from "
             "IT'IS), or install it manually (see resources/tissue_db/README.md).",
-            flush=True,
+            file=sys.stderr, flush=True,
         )
         return out
     # Per-dispersion τ unit factors → seconds. Order matches the

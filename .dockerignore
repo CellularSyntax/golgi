@@ -1,0 +1,15 @@
+.git
+.github
+**/__pycache__
+**/*.pyc
+*.egg-info
+.pytest_cache
+docs/*.gif
+golgi_demo_recruitment_sweep*
+golgi_benchmark_project*
+*_study.zip
+benchmark*.json
+docker/out
+_golgi_no_project
+.tmp
+/_golgi_assets

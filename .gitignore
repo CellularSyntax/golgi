@@ -8,3 +8,11 @@ dist/
 wiki/
 paper_figs/out
 FEATURES.md
+/_golgi_no_project/
+/_golgi_assets/
+.tmp/
+docker/out/
+golgi_demo_recruitment_sweep*/
+golgi_benchmark_project*/
+*_study.zip
+benchmark*.json

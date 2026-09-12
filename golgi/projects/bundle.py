@@ -65,6 +65,7 @@ included, only audit excerpts scoped to the project dir."""
 from __future__ import annotations
 
 import hashlib
+import sys
 import io
 import json
 import zipfile
@@ -306,7 +307,7 @@ def _audit_excerpt(
         print(
             f"[bundle] audit query failed: "
             f"{type(ex).__name__}: {ex}",
-            flush=True,
+            file=sys.stderr, flush=True,
         )
     return out
 
@@ -331,15 +332,28 @@ def _stage_def(
 ) -> dict[str, Any]:
     """Build one stage entry for the manifest. `file_shas` is the
     map of arcname → sha256 already computed by `export_study`.
-    Stages whose outputs aren't all present in `file_shas`
-    report `present=False` so replay can skip them gracefully."""
-    out_shas = [
-        file_shas[name_] for name_ in outputs
-        if name_ in file_shas
-    ]
-    present = (
-        bool(out_shas) and len(out_shas) == len(outputs)
+
+    Output names are canonical basenames; a project stores one copy
+    per electrode design / FEM config (`designs/<eid>/nerve.msh`,
+    `configs/<cid>/paths_Ve.npz`, `sweeps/sweep_*.npz`), so every
+    arcname whose basename matches is resolved and listed. Stages
+    for which no canonical output exists in the bundle report
+    `present=False` so verification skips them gracefully."""
+    resolved: list[str] = []
+    for name_ in outputs:
+        hits = sorted(
+            arc for arc in file_shas
+            if arc == name_ or arc.endswith("/" + name_)
+        )
+        resolved.extend(hits)
+    # A stage counts as present when at least one copy of every
+    # canonical output is in the bundle.
+    present = bool(resolved) and all(
+        any(arc == name_ or arc.endswith("/" + name_) for arc in resolved)
+        for name_ in outputs
     )
+    outputs = resolved if resolved else list(outputs)
+    out_shas = [file_shas[a] for a in resolved]
     # Stage hash = sha256 of the concat'd sha hex strings of the
     # outputs in the listed order. Stable + cheap to recompute.
     if out_shas:
@@ -431,11 +445,11 @@ def _build_dag(
                 "paths_Ve.npz",
                 "nerve_paths_fibers.npz",
             ],
-            outputs=sorted([
-                name for name in file_shas
-                if name.startswith("sweep_")
+            outputs=sorted({
+                name.rsplit("/", 1)[-1] for name in file_shas
+                if name.rsplit("/", 1)[-1].startswith("sweep_")
                 and name.endswith(".npz")
-            ]),
+            }),
             file_shas=file_shas,
         ),
     ]

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "golgi"
-version = "1.0.0"
+version = "1.1.0"
 description = "Anatomically realistic, reproducible image-to-population modeling of peripheral nerve stimulation."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -69,6 +69,7 @@ dependencies = [
     "mapbox_earcut",
     "plotly",
     "kaleido",
+    "psutil",
 ]
 
 [project.optional-dependencies]
