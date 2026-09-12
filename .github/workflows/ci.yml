@@ -59,8 +59,11 @@ jobs:
         run: |
           export CXX="$(ls $CONDA_PREFIX/bin/*-conda-linux-gnu-g++ | head -1)"
           export CC="$(ls $CONDA_PREFIX/bin/*-conda-linux-gnu-gcc | head -1)"
-          cd "$(python -c 'import pyfibers,os;print(os.path.dirname(pyfibers.__file__))')/MOD" && nrnivmodl > /dev/null
-          python -c "import pyfibers; print('pyfibers', pyfibers.__version__)"
+          MOD="$(python -c 'import importlib.util as u;print(u.find_spec("pyfibers").submodule_search_locations[0])')/MOD"
+          test -d "$MOD"
+          (cd "$MOD" && nrnivmodl > nrnivmodl.log 2>&1) || { tail -40 "$MOD/nrnivmodl.log"; exit 1; }
+          python -c "import pyfibers; print('pyfibers', pyfibers.__version__)" 2>&1 | tee pf.txt
+          grep -q "mechanisms not found" pf.txt && exit 1 || true
       - name: Full test suite incl. end-to-end pipeline
         shell: bash -el {0}
         env:

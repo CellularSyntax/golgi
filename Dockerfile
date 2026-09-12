@@ -52,8 +52,9 @@ RUN python -m pip install --no-cache-dir \
 RUN set -e; \
     export CXX="$(ls ${CONDA_PREFIX}/bin/*-conda-linux-gnu-g++ | head -1)"; \
     export CC="$(ls ${CONDA_PREFIX}/bin/*-conda-linux-gnu-gcc | head -1)"; \
-    MOD="$(python -c 'import pyfibers,os;print(os.path.dirname(pyfibers.__file__))')/MOD"; \
-    cd "$MOD" && nrnivmodl > /tmp/nrnivmodl.log 2>&1 || (tail -40 /tmp/nrnivmodl.log; exit 1); \
+    MOD="$(python -c 'import importlib.util as u;print(u.find_spec("pyfibers").submodule_search_locations[0])')/MOD"; \
+    test -d "$MOD" || { echo "PyFibers MOD dir not found: $MOD"; exit 1; }; \
+    cd "$MOD" && nrnivmodl > /tmp/nrnivmodl.log 2>&1 || { tail -40 /tmp/nrnivmodl.log; exit 1; }; \
     python -c "import pyfibers; print('pyfibers', pyfibers.__version__, 'mechanisms OK')"
 
 # --- 4. record the resolved environment for provenance ----------------------
