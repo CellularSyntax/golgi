@@ -68,13 +68,19 @@ jobs:
       # and OOM-kills the VM together with the second e2e test, so the e2e
       # tests run one process at a time and the regression test uses the
       # "light" mesh profile (coarser far field only).
-      - name: Solver-free tests + end-to-end pipeline smoke test
+      - name: Solver-free (tier 1) tests
         shell: bash -el {0}
         env:
           GOLGI_PROJECTS_ROOT: ${{ runner.temp }}/golgi_projects
           PYVISTA_OFF_SCREEN: "true"
           OMP_NUM_THREADS: "1"
-        run: python -m pytest -q -rs --durations=10 tests --deselect tests/test_e2e_reference.py
+        # The heavy tier-2/3 pipeline tests build a full mesh (~10 GB) and OOM the
+        # 16 GB hosted runner; the light-profile e2e regression test below covers the
+        # complete pipeline within the runner's memory.
+        run: >-
+          python -m pytest -q -rs --durations=10 tests
+          --deselect tests/test_e2e_reference.py
+          --deselect tests/test_headless_api.py::test_end_to_end_pipeline
       - name: End-to-end regression test vs recorded reference (light profile)
         shell: bash -el {0}
         env:
