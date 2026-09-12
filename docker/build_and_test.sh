@@ -18,10 +18,12 @@ IMAGE="${IMAGE:-golgi:${VERSION}}"
 OUT="${OUT:-$HERE/out}"
 PLATFORM_ARGS=()
 FIBERS="${FIBERS:-12}"
+PROFILE="${PROFILE:-full}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --platform) PLATFORM_ARGS=(--platform "$2"); shift 2 ;;
     --fibers) FIBERS="$2"; shift 2 ;;
+    --profile) PROFILE="$2"; shift 2 ;;
     --no-save) NO_SAVE=1; shift ;;
     *) echo "unknown arg $1"; exit 2 ;;
   esac
@@ -70,7 +72,7 @@ log "pytest exit code $RC"
 log "5/6 running the end-to-end example + benchmark inside the image ($FIBERS fibers)"
 docker run --rm "${PLATFORM_ARGS[@]}" -e GOLGI_PROJECTS_ROOT=/tmp/golgi_projects \
   -v "$OUT:/out" -w /tmp "$IMAGE" \
-  bash -lc "python /opt/golgi/examples/benchmark.py --fibers $FIBERS --project /tmp/bench_project --out /out/benchmark_docker.json --label docker-$(uname -m) \
+  bash -lc "python /opt/golgi/examples/benchmark.py --fibers $FIBERS --profile $PROFILE --project /tmp/bench_project --out /out/benchmark_docker.json --label docker-$(uname -m) \
             && golgi replay /tmp/bench_project_study.zip --json > /out/replay_docker.json \
             && echo REPLAY_OK" 2>&1 | tee "$OUT/benchmark_docker.log"
 grep -q REPLAY_OK "$OUT/benchmark_docker.log" || { log "example/replay FAILED"; exit 1; }

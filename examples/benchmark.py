@@ -197,7 +197,27 @@ def _count_msh_elements(msh_path: Path) -> dict:
         return {"error": f"{type(ex).__name__}: {ex}"}
 
 
-def run_benchmark(project_dir: Path, n_fibers: int) -> dict:
+# Mesh profiles. "full" is the reference study of examples/recruitment_sweep.py
+# (2.9 M tetrahedra, ~10 GB peak) — a desktop workstation or HPC node.
+# "light" coarsens the surrounding saline/silicone/muscle volumes only
+# (~0.85 M tetrahedra, <5 GB peak; fits a 16 GB hosted CI runner); the
+# nerve, cuff contacts and fibers are discretised identically, and the
+# recorded thresholds agree with "full" to within the bisection tolerance.
+MESH_PROFILES: dict[str, dict] = {
+    "full": dict(use_epi=True, epi_thickness_um=50, lc_endo_um=200,
+                 lc_epi_um=150, lc_muscle_um=1000, lc_saline_um=150,
+                 lc_silicone_um=300, lc_contact_um=100, lc_scar_um=150,
+                 muscle_radial_pad_mm=5, muscle_axial_pad_mm=10),
+    "light": dict(use_epi=True, epi_thickness_um=50, lc_endo_um=200,
+                  lc_epi_um=150, lc_muscle_um=4000, lc_saline_um=200,
+                  lc_silicone_um=500, lc_contact_um=100, lc_scar_um=150,
+                  muscle_radial_pad_mm=3, muscle_axial_pad_mm=4),
+}
+
+
+def run_benchmark(project_dir: Path, n_fibers: int,
+                  profile: str = "full") -> dict:
+    mesh_params = MESH_PROFILES[profile]
     from golgi.jobs.schemas import SweepRequest
 
     if project_dir.exists():
@@ -226,10 +246,7 @@ def run_benchmark(project_dir: Path, n_fibers: int) -> dict:
     make_synthetic_nerve(stl)
     info = timed("import_nerve", lambda: s.import_nerve(stl))
 
-    s.set_mesh(use_epi=True, epi_thickness_um=50, lc_endo_um=200,
-               lc_epi_um=150, lc_muscle_um=1000, lc_saline_um=150,
-               lc_silicone_um=300, lc_contact_um=100, lc_scar_um=150,
-               muscle_radial_pad_mm=5, muscle_axial_pad_mm=10)
+    s.set_mesh(**mesh_params)
     s.set_electrodes([{"eid": "elec_01", "name": "Bipolar cuff",
                        "cuff_offset_mm": NERVE_LENGTH_MM / 2.0,
                        "electrode_type": "bipolar ring-pair"}])
@@ -257,6 +274,8 @@ def run_benchmark(project_dir: Path, n_fibers: int) -> dict:
     return {
         "environment": describe_environment(),
         "study": {
+            "mesh_profile": profile,
+            "mesh_params": mesh_params,
             "geometry": "synthetic cylindrical monofascicular nerve, "
                         f"r = 1 mm, L = {NERVE_LENGTH_MM:g} mm, "
                         "50 µm epineurium, bipolar ring-pair cuff",
@@ -303,6 +322,9 @@ def markdown_table(rep: dict) -> str:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--fibers", type=int, default=12)
+    ap.add_argument("--profile", choices=sorted(MESH_PROFILES), default="full",
+                    help="mesh profile: 'full' = reference study (~10 GB), "
+                         "'light' = coarser far field for CI runners (~16 GB hosts)")
     ap.add_argument("--project", type=Path,
                     default=Path.cwd() / "golgi_benchmark_project")
     ap.add_argument("--out", type=Path, default=Path.cwd() / "benchmark.json")
@@ -310,7 +332,8 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     print(f"golgi benchmark — {args.fibers} fibers", flush=True)
-    rep = run_benchmark(args.project, args.fibers)
+    rep = run_benchmark(args.project, args.fibers, args.profile)
+    rep["profile"] = args.profile
     rep["label"] = args.label
     rep["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S")
     args.out.parent.mkdir(parents=True, exist_ok=True)

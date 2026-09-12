@@ -1,0 +1,53 @@
+{
+  "description": "Recorded results of the 'light' mesh profile (examples/benchmark.py --profile light: coarser far-field muscle only) in the v1.1.0 release environment; consumed by tests/test_e2e_reference.py on CI runners.",
+  "produced_with": {
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "python": "3.12.13",
+    "golgi": "1.1.0",
+    "fenics-dolfinx": "0.10.0",
+    "petsc4py": "3.25.5",
+    "gmsh": "4.15.2",
+    "tetgen": "0.8.4",
+    "pyfibers": "0.8.5",
+    "numpy": "2.3.5",
+    "scipy": "1.18.1"
+  },
+  "n_fibers": 12,
+  "mesh_params": {
+    "use_epi": true,
+    "epi_thickness_um": 50,
+    "lc_endo_um": 200,
+    "lc_epi_um": 150,
+    "lc_muscle_um": 4000,
+    "lc_saline_um": 200,
+    "lc_silicone_um": 500,
+    "lc_contact_um": 100,
+    "lc_scar_um": 150,
+    "muscle_radial_pad_mm": 3,
+    "muscle_axial_pad_mm": 4
+  },
+  "sweep_params": {
+    "bisect_lo_mA": 0.01,
+    "bisect_hi_mA": 10.0,
+    "bisect_tol_uA": 10.0,
+    "model_source": "single_fiber"
+  },
+  "mesh": {
+    "n_nodes": 156899,
+    "n_tets": 844812,
+    "tets_per_region": {
+      "endo": 47632,
+      "saline": 19067,
+      "silicone": 68947,
+      "muscle": 709166
+    }
+  },
+  "thresholds_uA": {
+    "n_fibers": 12,
+    "n_activated": 12,
+    "median": 68.53515624999999,
+    "min": 68.53515624999999,
+    "max": 97.802734375
+  },
+  "rel_tol": 0.15
+}

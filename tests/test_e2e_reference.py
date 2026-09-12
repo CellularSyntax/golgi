@@ -17,9 +17,16 @@ What is asserted
     move slightly between platforms/compilers — the tolerance covers that);
   * the exported bundle verifies with ``golgi replay``.
 
+Two mesh profiles exist (see ``MESH_PROFILES`` in ``examples/benchmark.py``):
+``full`` is the reference study of the paper (~2.9 M tetrahedra, ~10 GB peak
+memory) and ``light`` coarsens only the far-field muscle volume so the same
+pipeline fits a 16 GB CI runner. ``GOLGI_E2E_PROFILE`` selects which
+profile(s) run: ``full`` (default), ``light`` or ``all``.
+
 Requires the full solver stack; auto-skips without it. Run explicitly with
 
     pytest -m integration tests/test_e2e_reference.py
+    GOLGI_E2E_PROFILE=light pytest -m integration tests/test_e2e_reference.py
 """
 from __future__ import annotations
 
@@ -31,8 +38,16 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-REF = Path(__file__).parent / "reference" / "e2e_synthetic_reference.json"
+import os
+
+REF_DIR = Path(__file__).parent / "reference"
+REFS = {
+    "full": REF_DIR / "e2e_synthetic_reference.json",
+    "light": REF_DIR / "e2e_synthetic_reference_light.json",
+}
 _SOLVER_MODS = ("dolfinx", "gmsh", "pyfibers", "tetgen")
+_SEL = os.environ.get("GOLGI_E2E_PROFILE", "full").lower()
+_PROFILES = list(REFS) if _SEL == "all" else [_SEL]
 
 
 def _missing() -> list[str]:
@@ -41,8 +56,11 @@ def _missing() -> list[str]:
 
 @pytest.mark.integration
 @pytest.mark.skipif(bool(_missing()), reason=f"solver stack missing: {_missing()}")
-@pytest.mark.skipif(not REF.is_file(), reason="reference results file missing")
-def test_reference_study_reproduces_recorded_thresholds(tmp_path):
+@pytest.mark.parametrize("profile", _PROFILES)
+def test_reference_study_reproduces_recorded_thresholds(tmp_path, profile):
+    REF = REFS[profile]
+    if not REF.is_file():
+        pytest.skip(f"reference results file missing: {REF.name}")
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "examples"))
     from recruitment_sweep import NERVE_LENGTH_MM, make_synthetic_nerve  # noqa: E402
     import golgi

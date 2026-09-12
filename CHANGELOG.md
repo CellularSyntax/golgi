@@ -20,7 +20,8 @@
 - `tests/README.md` documents the three tiers.
 
 ### Examples
-- `examples/benchmark.py`: per-stage wall time and peak memory report (JSON + Markdown).
+- `examples/benchmark.py`: per-stage wall time and peak memory report (JSON + Markdown); `--profile full|light`
+  (the light profile coarsens only the far field so the pipeline fits a 16 GB CI runner).
 
 ### Fixes
 - Project root is configurable via `GOLGI_PROJECTS_ROOT` (was hard-coded to `~/Documents/Golgi/Projects`
