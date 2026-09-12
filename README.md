@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://doi.org/10.5281/zenodo.21281594"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21281594-blue" alt="DOI"></a>
+  <a href="https://github.com/CellularSyntax/golgi/actions/workflows/ci.yml"><img src="https://github.com/CellularSyntax/golgi/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg" alt="License: AGPL-3.0-or-later"></a>
   <img src="https://img.shields.io/badge/interfaces-GUI%20%C2%B7%20API%20%C2%B7%20CLI-success" alt="GUI · API · CLI">
   <img src="https://img.shields.io/badge/solver-FEniCSx-orange" alt="FEniCSx">
@@ -80,36 +81,62 @@ batch job are fully interchangeable:
 
 ## Installation
 
-golgi's compiled scientific core — **FEniCSx/DOLFINx** — is installed with conda/mamba; golgi and the
-rest of its dependencies then install with pip:
+golgi's compiled scientific core (FEniCSx/DOLFINx, PETSc, Gmsh, VTK, NEURON) is installed with
+conda/mamba; golgi itself and the pure-Python stack come from PyPI. Three ways, from most to least
+turnkey:
+
+**1. Docker image (zero setup, Linux/macOS/Windows)**
 
 ```bash
-# (a) conda environment with the compiled scientific core
-mamba create -n golgi -c conda-forge python=3.12 \
-    fenics-dolfinx gmsh python-gmsh pyvista vtk meshio h5py
-
-# On Linux, if this fails due to channel conflicts, add --override-channels:
-# mamba create -n golgi -c conda-forge --override-channels python=3.12 fenics-dolfinx gmsh python-gmsh pyvista vtk meshio h5py
-
-mamba activate golgi
-
-# (b) golgi itself + all of its PyPI dependencies, from the repository root
-pip install -e .
-
-golgi fetch-tissue-db         # download the IT'IS tissue-properties database (see below)
+docker run --rm -p 8080:8080 -v "$PWD/golgi_data:/data" ghcr.io/cellularsyntax/golgi:v1.1.0
+# → open http://localhost:8080 ; studies persist in ./golgi_data
 ```
 
-Only the FEniCSx core is conda-provided (it is not portably pip-installable); the GUI, meshing,
-visualization, and analysis stack (Trame, PyVista/VTK, Gmsh, bcrypt, …) is declared in
-`pyproject.toml` and pulled in automatically. The **IT'IS tissue-properties database** (used for
+The image is built and tested by CI from the [`Dockerfile`](Dockerfile) in this repository and is also
+archived on Zenodo as a tarball (`docker load -i golgi-1.1.0-*-docker.tar.gz`). It runs the GUI, the
+Python API (`docker run ... python my_script.py`) and the CLI (`docker run ... golgi replay study.zip`);
+see [docker/README.md](docker/README.md).
+
+**2. Pinned conda environment (Linux, macOS; Windows via WSL2)**
+
+```bash
+mamba env create -f environment.yml      # pinned versions of the release environment
+mamba activate golgi
+python -m pyfibers.compile               # compile PyFibers' NEURON mechanisms (once)
+golgi fetch-tissue-db                    # optional: IT'IS tissue-properties database (see below)
+golgi                                    # launch the GUI
+```
+
+`environment.yml` pins the scientific stack (DOLFINx 0.10.0, Gmsh 4.15.2, VTK 9.6.1, NEURON 9.0.1,
+PyFibers 0.8.5, Trame 3.12, TetGen 0.8.4) and installs golgi in editable mode from the repository
+root. For byte-exact replication of the release environment, the fully resolved lock files are
+`environment.<platform>.lock` (conda, `--explicit` format) plus `requirements-pip.<platform>.txt`:
+
+```bash
+mamba create -n golgi --file environment.osx-arm64.lock      # or environment.x86_64.lock (Linux)
+mamba activate golgi && pip install -r requirements-pip.osx-arm64.txt && pip install -e .
+```
+
+**3. Manual**
+
+```bash
+mamba create -n golgi -c conda-forge python=3.12 fenics-dolfinx=0.10 gmsh python-gmsh pyvista vtk meshio h5py neuron cxx-compiler
+mamba activate golgi
+pip install -e ".[neuron]"
+```
+
+Only the FEniCSx core, NEURON and the C++ meshers are conda-provided (they are not portably
+pip-installable); the GUI, meshing wrappers, visualization and analysis stack (Trame, PyVista/VTK,
+TetGen, bcrypt, …) is declared in `pyproject.toml`. The **IT'IS tissue-properties database** (used for
 Cole–Cole conductivity) is not redistributed with golgi — `golgi fetch-tissue-db` downloads it
 directly from the [IT'IS Foundation](https://itis.swiss/virtual-population/tissue-properties/) (golgi
-still runs without it, falling back to a Custom preset). **NEURON** — for biophysical activation thresholds
-(`pip install -e ".[neuron]"` plus a NEURON install) — and the optional extras (an **NVIDIA GPU
-(CUDA)** for the AxonML high-throughput backend, and a **MedSAM2/SAM** checkpoint for promptable
-segmentation, with a stub-segmenter fallback) are documented on the
-[**Installation**](https://github.com/CellularSyntax/golgi/wiki/Installation) wiki page. A pinned
-version snapshot of a known-good environment is in [`requirements-frozen.txt`](requirements-frozen.txt).
+still runs without it, falling back to a Custom preset). The optional extras — an **NVIDIA GPU (CUDA)**
+for the AxonML high-throughput backend (separately licensed by Duke University, not bundled) and a
+**MedSAM2/SAM2** checkpoint for promptable segmentation (stub-segmenter fallback) — are documented on
+the [**Installation**](https://github.com/CellularSyntax/golgi/wiki/Installation) wiki page.
+
+Projects are stored under `~/Documents/Golgi/Projects` by default; set `GOLGI_PROJECTS_ROOT` to
+relocate them (the Docker image uses `/data`).
 
 ## Quick start
 
@@ -177,6 +204,35 @@ golgi figure <bundle.golgi.zip>             # render quick-look panels
 
 See [Reproducible Study Bundles](https://github.com/CellularSyntax/golgi/wiki/Reproducible-Study-Bundles).
 
+## Command line
+
+```bash
+golgi                                        # GUI server (http://localhost:8080)
+golgi --host 0.0.0.0 --port 8080 --no-browser  # headless host / container
+golgi export  ./vagus_study vagus_study.golgi.zip   # pack a project into a study bundle
+golgi import  vagus_study.golgi.zip ./vagus_copy    # unpack a received bundle
+golgi replay  vagus_study.golgi.zip                 # verify every file + stage hash against MANIFEST.json
+golgi replay  vagus_study.golgi.zip --json          # machine-readable verification report
+golgi fetch-tissue-db                               # IT'IS Cole–Cole tissue database
+python examples/recruitment_sweep.py                # full pipeline on a synthetic nerve (no data)
+python examples/benchmark.py --fibers 12            # per-stage wall time + peak memory report
+```
+
+## Testing
+
+```bash
+pytest -q                     # solver-free tests: API contract, bundle integrity, CLI (seconds)
+pytest -q -m integration      # + end-to-end pipeline on the synthetic reference nerve (~10–30 min)
+```
+
+The suite has three tiers (see [`tests/README.md`](tests/README.md)): (1) solver-free unit tests of the
+`golgi.Study` API contract, the study-bundle export/import/verification code and the CLI; (2) the
+end-to-end pipeline test (`import_nerve → run_mesh → run_fibers → run_fem → run_sweep → export_bundle`)
+that checks every stage's artifacts; (3) a regression test that compares the activation thresholds of
+the 12-fiber reference study against recorded values (`tests/reference/`). GitHub Actions runs tier 1
+on Linux and macOS, tiers 2–3 on Linux with the pinned conda environment, and builds and tests the
+Docker image on every push; tagged releases are pushed to `ghcr.io/cellularsyntax/golgi`.
+
 ## Documentation
 
 Full documentation, tutorials, and reference live in the
@@ -210,10 +266,21 @@ golgi/
 │   ├── auth/           # users · sessions · audit log
 │   └── ui/             # drawers · dialogs · components
 ├── cuff_designer.py    # ASCENT-style parametric cuff primitives
-├── examples/           # runnable headless examples
+├── examples/           # runnable headless examples + benchmark
 ├── paper_figs/         # scripts that regenerate the paper figures
-└── tests/              # headless API + cable-equation tests
+├── tests/              # API contract · bundle integrity · CLI · end-to-end + reference regression
+├── docker/             # compose file, build-and-test script, container notes
+├── Dockerfile          # reproducible container image
+├── environment.yml     # pinned conda environment (+ environment.<platform>.lock)
+└── .github/workflows/  # CI: unit (Linux/macOS) · integration · Docker
 ```
+
+## Intended use
+
+golgi is research software for in-silico modeling of peripheral nerve stimulation. It is **not a
+medical device** and is not intended for clinical diagnosis, treatment planning or any other clinical
+decision-making. Model predictions inherit the assumptions of the underlying tissue and fiber models
+and should be interpreted accordingly.
 
 ## License
 

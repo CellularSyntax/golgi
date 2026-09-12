@@ -259,8 +259,19 @@ _CUFF_PRESETS = cuff_designer.load_cuff_presets(CUFF_DUKE_DIR)
 # Before any project is opened, GOLGI_OUT points at a temporary
 # orphan dir under HERE/ so module-load code that wants to write
 # (the old static assets path, sigma-default load) doesn't crash.
-PROJECTS_ROOT = Path.home() / "Documents" / "Golgi" / "Projects"
-PROJECTS_ROOT.mkdir(parents=True, exist_ok=True)
+# The root can be relocated with GOLGI_PROJECTS_ROOT (used by the Docker
+# image, which mounts a host volume at /data, and by CI/test runs).
+PROJECTS_ROOT = Path(
+    os.environ.get("GOLGI_PROJECTS_ROOT")
+    or (Path.home() / "Documents" / "Golgi" / "Projects")
+).expanduser()
+try:
+    PROJECTS_ROOT.mkdir(parents=True, exist_ok=True)
+except OSError as _ex:  # read-only HOME (containers, sandboxed CI)
+    import tempfile as _tempfile
+    print(f"[golgi] cannot create {PROJECTS_ROOT} ({_ex}); "
+          f"set GOLGI_PROJECTS_ROOT to a writable directory", flush=True)
+    PROJECTS_ROOT = Path(_tempfile.mkdtemp(prefix="golgi_projects_"))
 
 _NO_PROJECT_FALLBACK = HERE / "_golgi_no_project"
 _NO_PROJECT_FALLBACK.mkdir(exist_ok=True)
@@ -5256,7 +5267,8 @@ from golgi.pipeline.fiber_backends import (  # noqa: E402, F401
 
 
 
-def build_app(port: int) -> None:
+def build_app(port: int, host: str = "localhost",
+              open_browser: bool = True) -> None:
     _ensure_initialized()
     server = get_server(client_type="vue3")
     state, ctrl = server.state, server.controller
@@ -22899,7 +22911,7 @@ def build_app(port: int) -> None:
     # back except re-launching the script. We don't want any auto-
     # shutdown — the user closes the terminal when they're done.
     server.start(
-        port=port, exec_mode="main", open_browser=True,
+        port=port, host=host, exec_mode="main", open_browser=open_browser,
         timeout=0,
     )
 
@@ -22921,8 +22933,17 @@ def main():
     _ensure_initialized()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument(
+        "--host", default=os.environ.get("GOLGI_HOST", "localhost"),
+        help="Interface to bind the GUI server to (default: localhost; "
+             "use 0.0.0.0 inside a container).")
+    parser.add_argument(
+        "--no-browser", action="store_true",
+        default=bool(os.environ.get("GOLGI_NO_BROWSER")),
+        help="Do not try to open a web browser on start (headless hosts, "
+             "containers).")
     args = parser.parse_args()
-    build_app(args.port)
+    build_app(args.port, host=args.host, open_browser=not args.no_browser)
 
 
 if __name__ == "__main__":

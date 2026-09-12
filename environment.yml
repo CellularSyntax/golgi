@@ -1,0 +1,52 @@
+# golgi — reproducible conda environment (Linux x86-64 / aarch64, macOS arm64).
+#
+#   mamba env create -f environment.yml
+#   mamba activate golgi
+#   python -m pyfibers.compile        # compile PyFibers' NEURON mechanisms once
+#   golgi                             # launch the GUI on http://localhost:8080
+#
+# The compiled scientific core (FEniCSx/DOLFINx + PETSc, Gmsh, VTK, NEURON) comes
+# from conda-forge; golgi itself and the pure-Python stack come from PyPI via the
+# pip section. Versions are pinned to the release environment; the fully
+# resolved, platform-specific lock files (environment.<platform>.lock,
+# `conda list --explicit` format) sit next to this file for exact replication:
+#
+#   mamba create -n golgi --file environment.linux-64.lock
+#
+# For a zero-setup alternative use the Docker image (see docker/README.md).
+name: golgi
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pip
+  # --- finite-element solver stack ---
+  - fenics-dolfinx=0.10.0
+  - petsc4py
+  - mpi4py
+  # --- meshing / geometry / visualization ---
+  - gmsh=4.15.2
+  - python-gmsh=4.15.2
+  - vtk=9.6.1
+  - pyvista=0.48.1
+  - meshio
+  - h5py
+  # --- biophysical fiber simulation ---
+  - neuron=9.0.1
+  - cxx-compiler          # nrnivmodl needs a C++ compiler to build .mod mechanisms
+  - make
+  # --- misc ---
+  - psutil
+  - pip:
+      - pyfibers==0.8.5
+      - trame==3.12.0
+      - trame-client==3.12.1
+      - trame-server==3.12.0
+      - trame-vtk==2.11.8
+      - trame-vuetify==3.2.2
+      - trame-plotly==3.1.2
+      - trame-common==1.2.3
+      - wslink==2.5.6
+      - tetgen==0.8.4
+      - -e .

@@ -187,6 +187,8 @@ def _cmd_replay(args) -> int:
                             print(
                                 f"    {f.name}: {f.note}"
                             )
+            for f in report.mismatched_files():
+                print(f"  {f.name}: {f.note}")
     return 0 if report.ok else 1
 
 
@@ -472,7 +474,8 @@ def dispatch(argv: list[str]) -> "int | None":
 
     p_replay = subs.add_parser(
         "replay",
-        help="Verify a study bundle's hashes (or re-run with --full).",
+        help="Verify a study bundle's integrity (SHA-256 of every file "
+             "and stage against MANIFEST.json).",
     )
     p_replay.add_argument(
         "bundle",
@@ -489,9 +492,10 @@ def dispatch(argv: list[str]) -> "int | None":
     grp.add_argument(
         "--full", action="store_true",
         help=(
-            "Re-run each pipeline stage from inputs + hash "
-            "the outputs. (Phase 3b — currently falls back "
-            "to check-only.)"
+            "Reserved: re-run each pipeline stage from its inputs "
+            "and hash the outputs. NOT implemented in this release "
+            "— behaves like --check-only and marks every stage "
+            "accordingly."
         ),
     )
     p_replay.add_argument(

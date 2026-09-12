@@ -1,5 +1,26 @@
 # tests/
 
+```bash
+pytest -q                    # tier 1 (seconds, no solver stack needed)
+pytest -q -m integration     # tiers 2 + 3 (full FEniCSx/NEURON stack, 10–30 min)
+```
+
+| Tier | File | Needs | What it checks |
+|---|---|---|---|
+| 1 | `test_headless_api.py` (tiers 1–2) | pure Python | `golgi.Study` exposes every compute method un-stubbed; project create/open lifecycle |
+| 1 | `test_bundle_integrity.py` | pure Python | bundle export writes a MANIFEST with SHA-256 per file + stage DAG; export is deterministic; `replay_study` passes on an intact bundle and pinpoints a single flipped byte; import round-trip |
+| 1 | `test_cli.py` | pure Python | `golgi export / import / replay [--json]` exit codes and output |
+| 1 | `test_recording_cable.py` | numpy | cable-equation current conservation for the recording model |
+| 2 | `test_headless_api.py::test_end_to_end_pipeline` | FEniCSx, Gmsh/TetGen, NEURON/PyFibers | `import_nerve → run_mesh → run_fibers → run_fem → run_sweep → export_bundle` on a synthetic capsule nerve; every stage's artifacts exist |
+| 3 | `test_e2e_reference.py` | as tier 2 | the 12-fiber reference study of `examples/recruitment_sweep.py` reproduces the recorded activation thresholds (`reference/e2e_synthetic_reference*.json`) within tolerance and its bundle verifies. `GOLGI_E2E_PROFILE=full` (default, 2.9 M tets, ~10 GB) / `light` (0.85 M tets, <5 GB — what CI runs) / `all` |
+
+Tier 2–3 tests auto-skip when the solver stack is absent. CI (`.github/workflows/ci.yml`) runs tier 1 on
+Linux and macOS, tiers 2–3 on Linux inside the pinned conda environment, and the whole suite once more
+inside the Docker image. GUI code (Trame/VTK) is exercised through the shared `golgi.Study` state and
+the pipeline drivers it calls; the browser layer itself is not covered by automated tests.
+
+---
+
 Test scaffolding + shims. The actual pytest suite is sparse for
 the GUI app (Trame + VTK + FEniCSx make CI heavy) — this dir
 ships **dev / smoke helpers** that let you exercise the

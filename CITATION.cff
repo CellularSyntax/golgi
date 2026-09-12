@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use golgi, please cite the software paper (preferred-citation) and the archived release."
+type: software
+title: "golgi: open-source software for automated nerve model generation and recruitment simulation"
+version: 1.1.0
+date-released: 2026-09-15
+license: AGPL-3.0-or-later
+repository-code: https://github.com/CellularSyntax/golgi
+url: https://github.com/CellularSyntax/golgi/wiki
+doi: 10.5281/zenodo.21281594
+authors:
+  - family-names: Lung
+    given-names: David
+    affiliation: Center for Medical Physics and Biomedical Engineering, Medical University of Vienna
+  - family-names: Jia
+    given-names: Yuting
+    affiliation: Center for Medical Physics and Biomedical Engineering, Medical University of Vienna
+  - family-names: Moro
+    given-names: Andrea
+    affiliation: Medical University of Vienna; Politecnico di Torino
+  - family-names: Fachino
+    given-names: Matteo
+    affiliation: Medical University of Vienna; Politecnico di Torino
+  - family-names: Haberbusch
+    given-names: Max
+    email: max.haberbusch@meduniwien.ac.at
+    affiliation: Center for Medical Physics and Biomedical Engineering, Medical University of Vienna; Ludwig Boltzmann Institute for Cardiovascular Research
+keywords:
+  - peripheral nerve stimulation
+  - finite-element modeling
+  - neuromodulation
+  - vagus nerve
+  - reproducibility
+preferred-citation:
+  type: article
+  title: "golgi: open-source software for automated nerve model generation and recruitment simulation"
+  journal: SoftwareX
+  year: 2026
+  authors:
+    - family-names: Lung
+      given-names: David
+    - family-names: Jia
+      given-names: Yuting
+    - family-names: Moro
+      given-names: Andrea
+    - family-names: Fachino
+      given-names: Matteo
+    - family-names: Haberbusch
+      given-names: Max

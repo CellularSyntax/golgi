@@ -1,0 +1,179 @@
+# golgi continuous integration
+#
+#  unit         — solver-free tests (API contract, bundle integrity, CLI) on
+#                 Linux and macOS with the pure-Python stack only.
+#  integration  — full scientific stack from environment.yml (FEniCSx, Gmsh,
+#                 TetGen, NEURON/PyFibers); runs the end-to-end pipeline test
+#                 and the example script.
+#  docker       — builds the container image, runs the test suite and the
+#                 e2e example inside it; on a version tag the image is pushed
+#                 to GitHub Container Registry (ghcr.io/cellularsyntax/golgi).
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: unit tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install golgi (pure-Python layer only)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . pytest
+      - name: Run solver-free tests
+        env:
+          GOLGI_PROJECTS_ROOT: ${{ runner.temp }}/golgi_projects
+        run: python -m pytest -q -rs tests --deselect tests/test_headless_api.py::test_end_to_end_pipeline
+
+  integration:
+    name: integration (FEniCSx + NEURON, ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          environment-name: golgi
+          cache-environment: true
+      - name: Compile PyFibers NEURON mechanisms
+        shell: bash -el {0}
+        run: |
+          export CXX="$(ls $CONDA_PREFIX/bin/*-conda-linux-gnu-g++ | head -1)"
+          export CC="$(ls $CONDA_PREFIX/bin/*-conda-linux-gnu-gcc | head -1)"
+          MOD="$(python -c 'import importlib.util as u;print(u.find_spec("pyfibers").submodule_search_locations[0])')/MOD"
+          test -d "$MOD"
+          (cd "$MOD" && nrnivmodl > nrnivmodl.log 2>&1) || { tail -40 "$MOD/nrnivmodl.log"; exit 1; }
+          python -c "import pyfibers; print('pyfibers', pyfibers.__version__)" 2>&1 | tee pf.txt
+          grep -q "mechanisms not found" pf.txt && exit 1 || true
+      # Hosted runners have 16 GB RAM; the full reference study peaks at ~10 GB
+      # and OOM-kills the VM together with the second e2e test, so the e2e
+      # tests run one process at a time and the regression test uses the
+      # "light" mesh profile (coarser far field only).
+      - name: Solver-free (tier 1) tests
+        shell: bash -el {0}
+        env:
+          GOLGI_PROJECTS_ROOT: ${{ runner.temp }}/golgi_projects
+          PYVISTA_OFF_SCREEN: "true"
+          OMP_NUM_THREADS: "1"
+        # The heavy tier-2/3 pipeline tests build a full mesh (~10 GB) and OOM the
+        # 16 GB hosted runner; the light-profile e2e regression test below covers the
+        # complete pipeline within the runner's memory.
+        run: >-
+          python -m pytest -q -rs --durations=10 tests
+          --deselect tests/test_e2e_reference.py
+          --deselect tests/test_headless_api.py::test_end_to_end_pipeline
+      - name: End-to-end regression test vs recorded reference (light profile)
+        shell: bash -el {0}
+        env:
+          GOLGI_PROJECTS_ROOT: ${{ runner.temp }}/golgi_projects
+          GOLGI_E2E_PROFILE: light
+          PYVISTA_OFF_SCREEN: "true"
+          OMP_NUM_THREADS: "1"
+        run: python -m pytest -q -rs --durations=5 tests/test_e2e_reference.py
+      - name: Benchmark (light profile) + bundle verification
+        shell: bash -el {0}
+        env:
+          GOLGI_PROJECTS_ROOT: ${{ runner.temp }}/golgi_projects
+          PYVISTA_OFF_SCREEN: "true"
+          OMP_NUM_THREADS: "1"
+        run: |
+          cd ${{ runner.temp }}
+          python $GITHUB_WORKSPACE/examples/benchmark.py --fibers 12 --profile light --out benchmark_ci.json --label github-actions-light
+          golgi replay golgi_benchmark_project_study.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-ci
+          path: ${{ runner.temp }}/benchmark_ci.json
+
+  docker:
+    name: docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: golgi:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Solver-free (tier 1) tests inside the image
+        # -w /opt/golgi so pytest rootdir is the repo and the --deselect nodeids
+        # (relative to rootdir) actually match; otherwise the heavy tests run and OOM.
+        run: >-
+          docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp -w /opt/golgi golgi:ci
+          python -m pytest -q -rs tests
+          --deselect tests/test_e2e_reference.py
+          --deselect tests/test_headless_api.py::test_end_to_end_pipeline
+      - name: End-to-end regression test inside the image (light profile)
+        run: >-
+          docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp -e GOLGI_E2E_PROFILE=light -w /opt/golgi golgi:ci
+          python -m pytest -q -rs --durations=5 tests/test_e2e_reference.py
+      - name: Benchmark (light profile) + bundle verification inside the image
+        run: |
+          mkdir -p out && chmod 777 out   # container runs as its own uid; let it write the report
+          docker run --rm -e GOLGI_PROJECTS_ROOT=/tmp/gp -v "$PWD/out:/out" -w /tmp golgi:ci \
+            bash -lc "python /opt/golgi/examples/benchmark.py --fibers 12 --profile light --project /tmp/bench_project --out /out/benchmark_docker.json --label docker-ci-light-\$(uname -m) \
+                      && golgi replay /tmp/bench_project_study.zip --json > /out/replay_docker.json && echo REPLAY_OK"
+          docker run --rm golgi:ci bash -lc "cat /opt/golgi/environment.*.lock" > out/environment.x86_64.lock
+          docker run --rm golgi:ci bash -lc "cat /opt/golgi/requirements-pip.*.txt" > out/requirements-pip.x86_64.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-benchmark-and-locks
+          path: out/
+      - name: Save image tarball for archiving (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          docker save golgi:ci | gzip -1 > "golgi-${VERSION}-x86_64-docker.tar.gz"
+          sha256sum "golgi-${VERSION}-x86_64-docker.tar.gz" > "golgi-${VERSION}-x86_64-docker.tar.gz.sha256"
+          ls -lh golgi-*-docker.tar.gz*
+      - uses: actions/upload-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: docker-image-tarball
+          path: golgi-*-docker.tar.gz*
+          retention-days: 14
+          compression-level: 0
+      - name: Log in to GHCR
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push tagged image
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/cellularsyntax/golgi:${{ github.ref_name }}
+            ghcr.io/cellularsyntax/golgi:latest
+          cache-from: type=gha

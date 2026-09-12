@@ -80,7 +80,13 @@ class ReplayReport:
     n_files_mismatched: int
     n_files_missing: int
     stages: list[StageResult] = field(default_factory=list)
+    # Every file listed in MANIFEST.files with its verification result
+    # (also those not owned by a DAG stage, e.g. project.json).
+    files: list[FileResult] = field(default_factory=list)
     error: str = ""
+
+    def mismatched_files(self) -> list[FileResult]:
+        return [f for f in self.files if not f.matched]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -110,6 +116,16 @@ class ReplayReport:
                     "note": s.note,
                 }
                 for s in self.stages
+            ],
+            "files": [
+                {
+                    "name": f.name,
+                    "recorded_sha": f.recorded_sha,
+                    "actual_sha": f.actual_sha,
+                    "matched": f.matched,
+                    "note": f.note,
+                }
+                for f in self.files
             ],
             "error": self.error,
         }
@@ -347,12 +363,14 @@ def replay_study(
 
         mode = "check_only" if check_only else "full"
         if not check_only:
-            # Phase 3b would dispatch here. For now degrade to
-            # check-only with a note on each stage.
+            # Full computational re-execution is not implemented in
+            # this release: --full degrades to integrity verification
+            # and says so on every stage.
             for sr in stage_results:
                 if not sr.note:
                     sr.note = (
-                        "(full replay deferred — Phase 3b)"
+                        "(full re-execution not implemented in this "
+                        "release — integrity check only)"
                     )
 
         ok = (n_mismatched == 0)
@@ -366,6 +384,7 @@ def replay_study(
             n_files_mismatched=n_mismatched,
             n_files_missing=n_missing,
             stages=stage_results,
+            files=file_results,
             error="" if ok else (
                 f"{n_mismatched} file(s) failed sha verification"
             ),
