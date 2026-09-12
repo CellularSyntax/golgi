@@ -54,8 +54,10 @@ RUN set -e; \
     export CC="$(ls ${CONDA_PREFIX}/bin/*-conda-linux-gnu-gcc | head -1)"; \
     MOD="$(python -c 'import importlib.util as u;print(u.find_spec("pyfibers").submodule_search_locations[0])')/MOD"; \
     test -d "$MOD" || { echo "PyFibers MOD dir not found: $MOD"; exit 1; }; \
-    cd "$MOD" && nrnivmodl > /tmp/nrnivmodl.log 2>&1 || { tail -40 /tmp/nrnivmodl.log; exit 1; }; \
-    python -c "import pyfibers; print('pyfibers', pyfibers.__version__, 'mechanisms OK')"
+    (cd "$MOD" && nrnivmodl > /tmp/nrnivmodl.log 2>&1) || { tail -40 /tmp/nrnivmodl.log; exit 1; }; \
+    # verify from outside the MOD dir: NEURON auto-loads ./<arch>/libnrnmech from the cwd, \
+    # and pyfibers loads it again on import -> "user defined name already exists" \
+    cd /tmp && python -c "import pyfibers; print('pyfibers', pyfibers.__version__, 'mechanisms OK')"
 
 # --- 4. record the resolved environment for provenance ----------------------
 RUN micromamba env export -n base --explicit --md5 > /opt/golgi/environment.$(uname -m).lock 2>/dev/null || \
