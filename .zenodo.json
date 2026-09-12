@@ -1,23 +1,67 @@
 {
   "title": "golgi: open-source software for automated nerve model generation and recruitment simulation",
   "upload_type": "software",
-  "license": "AGPL-3.0-or-later",
+  "license": "agpl-3.0-or-later",
   "version": "1.1.0",
   "language": "eng",
   "description": "<p>golgi is an open-source platform that takes a peripheral nerve from image to stimulated fiber population through a single graphical interface, with an equivalent scriptable Python API and command-line interface. It integrates promptable image segmentation, automated multi-region tetrahedral meshing (TetGen/Gmsh), anisotropic finite-element solution of the extracellular field with an explicit perineurium contact impedance (FEniCSx/DOLFINx), generation of realistic fiber populations and three-dimensional trajectories, and biophysical activation thresholds through interchangeable backends (NEURON via PyFibers; optional AxonML GPU surrogate). Every study exports as an integrity-hashed, self-contained bundle whose provenance is verified with <code>golgi replay</code>.</p><p>This release (v1.1.0) accompanies the revised SoftwareX article. It adds a Docker image (Dockerfile + archived image tarball), a pinned conda environment with platform lock files, continuous integration (GitHub Actions), an expanded test suite including an end-to-end regression test against recorded reference results, a per-stage benchmark script, and corrected API/CLI examples.</p>",
   "creators": [
-    {"name": "Lung, David", "affiliation": "Medical University of Vienna"},
-    {"name": "Jia, Yuting", "affiliation": "Medical University of Vienna"},
-    {"name": "Moro, Andrea", "affiliation": "Medical University of Vienna; Politecnico di Torino"},
-    {"name": "Fachino, Matteo", "affiliation": "Medical University of Vienna; Politecnico di Torino"},
-    {"name": "Haberbusch, Max", "affiliation": "Medical University of Vienna; Ludwig Boltzmann Institute for Cardiovascular Research"}
+    {
+      "name": "Lung, David",
+      "affiliation": "Medical University of Vienna",
+      "orcid": "0009-0003-7748-2335"
+    },
+    {
+      "name": "Jia, Yuting",
+      "affiliation": "Medical University of Vienna",
+      "orcid": "0009-0009-4111-3195"
+    },
+    {
+      "name": "Moro, Andrea",
+      "affiliation": "Medical University of Vienna; Politecnico di Torino"
+    },
+    {
+      "name": "Fachino, Matteo",
+      "affiliation": "Medical University of Vienna; Politecnico di Torino"
+    },
+    {
+      "name": "Haberbusch, Max",
+      "affiliation": "Medical University of Vienna; Ludwig Boltzmann Institute for Cardiovascular Research",
+      "orcid": "0000-0003-0712-4893"
+    }
   ],
-  "keywords": ["peripheral nerve stimulation", "finite-element modeling", "neuromodulation", "vagus nerve", "reproducibility", "Docker"],
+  "keywords": [
+    "peripheral nerve stimulation",
+    "finite-element modeling",
+    "neuromodulation",
+    "vagus nerve",
+    "reproducibility",
+    "Docker"
+  ],
   "related_identifiers": [
-    {"identifier": "https://github.com/CellularSyntax/golgi/tree/v1.1.0", "relation": "isSupplementTo", "scheme": "url"},
-    {"identifier": "10.5281/zenodo.21000095", "relation": "isSupplementedBy", "scheme": "doi", "resource_type": "dataset"},
-    {"identifier": "10.5281/zenodo.21006413", "relation": "isSupplementedBy", "scheme": "doi", "resource_type": "dataset"},
-    {"identifier": "10.5281/zenodo.21007683", "relation": "isSupplementedBy", "scheme": "doi", "resource_type": "dataset"}
+    {
+      "identifier": "https://github.com/CellularSyntax/golgi/tree/v1.1.0",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.21000095",
+      "relation": "isSupplementedBy",
+      "scheme": "doi",
+      "resource_type": "dataset"
+    },
+    {
+      "identifier": "10.5281/zenodo.21006413",
+      "relation": "isSupplementedBy",
+      "scheme": "doi",
+      "resource_type": "dataset"
+    },
+    {
+      "identifier": "10.5281/zenodo.21007683",
+      "relation": "isSupplementedBy",
+      "scheme": "doi",
+      "resource_type": "dataset"
+    }
   ],
   "access_right": "open"
 }
