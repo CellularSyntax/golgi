@@ -1,0 +1,944 @@
+[geom] deform=none det(M)=1.000000 mask=(405, 418) fascicles=5
+[extrude] fasc inset 2 px inside epi (XY): 41,946 → 41,946 fasc pixels  (+ Z inset of 2 slab(s) applied at vol-build time)
+[polygon-extrude] epi: outer=30 vts, holes=0, n_axial=67 → 2,040 verts, 4,076 tris (rdp_tol=10.0 µm, axial_step=298.51 µm)
+[split2d] 8 component(s); sizes (px): 30096, 8430, 1667, 1480, 270, 1, 1, 1
+[polygon-extrude] fascicle_0: outer=25 vts, holes=0, n_axial=67 → 1,700 verts, 3,396 tris (rdp_tol=10.0 µm, axial_step=298.21 µm)
+[polygon-extrude] fascicle_4: outer=7 vts, holes=0, n_axial=67 → 476 verts, 948 tris (rdp_tol=10.0 µm, axial_step=298.21 µm)
+[polygon-extrude] fascicle_5: outer=9 vts, holes=0, n_axial=67 → 612 verts, 1,220 tris (rdp_tol=10.0 µm, axial_step=298.21 µm)
+[polygon-extrude] fascicle_6: outer=24 vts, holes=0, n_axial=67 → 1,632 verts, 3,260 tris (rdp_tol=10.0 µm, axial_step=298.21 µm)
+[polygon-extrude] fascicle_7: outer=9 vts, holes=0, n_axial=67 → 612 verts, 1,220 tris (rdp_tol=10.0 µm, axial_step=298.21 µm)
+[geom] extruded 6 meshes in 0s (['epi', 'fascicle_0', 'fascicle_4', 'fascicle_5', 'fascicle_6', 'fascicle_7'])
+[golgi] cannot create /Users/admin/Documents/Golgi/Projects ([Errno 1] Operation not permitted: '/Users/admin/Documents/Golgi'); set GOLGI_PROJECTS_ROOT to a writable directory
+[golgi] IT'IS tissue database not found — using the Custom Cole-Cole preset only. Fetch it with `python -m golgi.conductivity.fetch_itis` (downloads V4-1 from IT'IS), or install it manually (see resources/tissue_db/README.md).
+[study] imported epi: 2040 pts 4076 tris
+[study] bundle injected: 1 epi + 5 fascicles
+[MESH-DRIVER-DEBUG] design_eids arg=['elec_01']  all_designs eids=['elec_01']  resolved targets=['elec_01']
+[mesh] === Design 'elec_01' (12-contact cuff) [1/1] ===
+[mesh]   refitting design 'elec_01' (no R_local_elec on file)…
+[mesh]   nerve preprocessing: 2,040 pts, 4,076 tris (target 50,000 tris)
+[mesh]   pass 1/2: Taubin done (4,076 tris, 0.02s)
+
+Loading ..0%Loading ..24%Loading ..49%Loading ..73%Loading ..98%
+[mesh]   pass 1/2: speckle-drop (4,076 tris, 0.01s)
+[mesh]   pass 1/2: MeshFix.repair SKIPPED (input already watertight, 4,076 tris)
+[mesh]   pass 2/2: Taubin done (4,076 tris, 0.00s)
+
+Loading ..0%Loading ..24%Loading ..49%Loading ..73%Loading ..98%
+[mesh]   pass 2/2: speckle-drop (4,076 tris, 0.01s)
+[mesh]   pass 2/2: MeshFix.repair SKIPPED (input already watertight, 4,076 tris)
+[mesh]   trimesh defensive pass: clean (4,076 tris validated)
+
+Loading ..0%Loading ..24%Loading ..49%Loading ..73%Loading ..98%
+
+-\|0 % done   43 % done   86 % done   
+INFO- No intersections detected.
+[mesh]   cleanup OK: 0 self-intersecting tris
+[mesh]   preprocessed: 2,040 pts, 4,076 tris
+[mesh]   clip planes: z_lo=-2.700 mm (Δ=+0 µm), z_hi=+2.700 mm (Δ=+0 µm)
+
+Loading ..0%Loading ..64%
+
+/-\0 % done   
+INFO- No intersections detected.
+[mesh]   post-clip SI count [nb]: 0 (810 pts, 1,558 tris)
+
+Loading ..0%Loading ..83%
+
+|/-0 % done   
+INFO- No intersections detected.
+[mesh]   post-clip SI count [nm]: 0 (660 pts, 1,200 tris)
+
+Loading ..0%Loading ..64%
+
+\|/0 % done   
+INFO- No intersections detected.
+[mesh]   post-clip SI count [na]: 0 (810 pts, 1,558 tris)
+[mesh]   µCT-bundle: skipping inward-offset epi shell (fascicles act as inner epi boundary; use_epi semantics handled by epi seed below)
+[mesh]   inner_surfaces: 5 fascicles → clip to cuff window [-2.70, +2.70] mm
+[mesh]   fasc 0: input bbox z=[-9.99, +9.99] mm, xy=[-0.10, +0.42] × [-0.82, -0.07] mm, 1,700 pts, 3,396 tris
+[mesh]   fasc 0: pre-clip MeshFix.repair 3,396 → 3,396 tris (clean for Viskores clip)
+[mesh]   fasc 0: pyvista clip returned empty (Viskores / VTK rejection on non-manifold input) — falling back to manual axial clip
+[mesh]   fasc 0: manual clip → 550 pts, 1,000 tris
+[mesh]   fasc 0: clipped → 877 pts, 1,548 tris (+2 cap polygons)
+[mesh]   fasc 0: post-clip SI count = 350 — iterative repair (MeshFix.repair → PyTMesh.clean → surgical)
+[mesh]   fasc 0: cycle 1 step A (MeshFix.repair): 1,012 tris, SI=0
+[mesh]   fasc 0: iterative repair done → 508 pts, 1,012 tris, SI=0 (was 350)
+[mesh]   fasc 1: input bbox z=[-9.99, +9.99] mm, xy=[-0.27, -0.20] × [-0.64, -0.54] mm, 476 pts, 948 tris
+[mesh]   fasc 1: pre-clip MeshFix.repair 948 → 948 tris (clean for Viskores clip)
+[mesh]   fasc 1: pyvista clip returned empty (Viskores / VTK rejection on non-manifold input) — falling back to manual axial clip
+[mesh]   fasc 1: manual clip → 154 pts, 280 tris
+[mesh]   fasc 1: clipped → 214 pts, 365 tris (+2 cap polygons)
+[mesh]   fasc 1: post-clip SI count = 95 — iterative repair (MeshFix.repair → PyTMesh.clean → surgical)
+[mesh]   fasc 1: cycle 1 step A (MeshFix.repair): 248 tris, SI=0
+[mesh]   fasc 1: iterative repair done → 126 pts, 248 tris, SI=0 (was 95)
+[mesh]   fasc 2: input bbox z=[-9.99, +9.99] mm, xy=[-0.89, -0.67] × [-0.42, -0.18] mm, 612 pts, 1,220 tris
+[mesh]   fasc 2: pre-clip MeshFix.repair 1,220 → 1,220 tris (clean for Viskores clip)
+[mesh]   fasc 2: pyvista clip returned empty (Viskores / VTK rejection on non-manifold input) — falling back to manual axial clip
+[mesh]   fasc 2: manual clip → 198 pts, 360 tris
+[mesh]   fasc 2: clipped → 278 pts, 481 tris (+2 cap polygons)
+[mesh]   fasc 2: post-clip SI count = 128 — iterative repair (MeshFix.repair → PyTMesh.clean → surgical)
+[mesh]   fasc 2: cycle 1 step A (MeshFix.repair): 320 tris, SI=0
+[mesh]   fasc 2: iterative repair done → 162 pts, 320 tris, SI=0 (was 128)
+[mesh]   fasc 3: input bbox z=[-9.99, +9.99] mm, xy=[-0.79, +0.08] × [-0.40, +0.77] mm, 1,632 pts, 3,260 tris
+[mesh]   fasc 3: pre-clip MeshFix.repair 3,260 → 3,260 tris (clean for Viskores clip)
+[mesh]   fasc 3: pyvista clip returned empty (Viskores / VTK rejection on non-manifold input) — falling back to manual axial clip
+[mesh]   fasc 3: manual clip → 528 pts, 960 tris
+[mesh]   fasc 3: clipped → 1,105 pts, 2,012 tris (+2 cap polygons)
+[mesh]   fasc 3: post-clip SI count = 357 — iterative repair (MeshFix.repair → PyTMesh.clean → surgical)
+[mesh]   fasc 3: cycle 1 step A (MeshFix.repair): 1,250 tris, SI=0
+[mesh]   fasc 3: iterative repair done → 627 pts, 1,250 tris, SI=0 (was 357)
+[mesh]   fasc 4: input bbox z=[-9.99, +9.99] mm, xy=[+0.11, +0.28] × [+0.03, +0.34] mm, 612 pts, 1,220 tris
+[mesh]   fasc 4: pre-clip MeshFix.repair 1,220 → 1,220 tris (clean for Viskores clip)
+[mesh]   fasc 4: pyvista clip returned empty (Viskores / VTK rejection on non-manifold input) — falling back to manual axial clip
+[mesh]   fasc 4: manual clip → 198 pts, 360 tris
+[mesh]   fasc 4: clipped → 292 pts, 505 tris (+2 cap polygons)
+[mesh]   fasc 4: post-clip SI count = 131 — iterative repair (MeshFix.repair → PyTMesh.clean → surgical)
+[mesh]   fasc 4: cycle 1 step A (MeshFix.repair): 390 tris, SI=0
+[mesh]   fasc 4: iterative repair done → 197 pts, 390 tris, SI=0 (was 131)
+[mesh]   inner_surfaces: kept 5/5 after clip
+[mesh]   _assemble_plc: global dedup @ 1.00 µm: 14,569 → 13,561 pts (1,008 merged)
+[mesh]   _assemble_plc: seam snap @ z=-2.700 mm (tol 50.0 µm): merged 57 vert pair(s) across 639 on-plane verts
+[mesh]   _assemble_plc: seam snap @ z=+2.700 mm (tol 50.0 µm): merged 63 vert pair(s) across 857 on-plane verts
+[mesh]   _assemble_plc: compacted orphans → 13,441 pts
+[mesh]   _assemble_plc: dropped 234 degenerate tri(s) post-merge
+[mesh]   post-assembly: 13,441 pts, 27,172 tris
+[mesh]   PLC weld 8µm: 27,172 -> 27,172 tris (0 degenerate dropped)
+[mesh]   post-assembly SI (pymeshfix, may over-count shared seams): 1524  (unique bad tris: 508)
+[mesh]   [diag] SI tris z[-20.00,20.00]mm (z_lo=-2.70 z_hi=2.70; @lo=5 @hi=4 mid=499); r[0.17,9.02]mm
+[mesh]   post-assembly SI repair ABANDONED (pass 1) — cum shred 45.9% > 30% guard (27,172 → 14,692 tris); keeping prior PLC
+2026-09-13 15:05:50.874 (   6.281s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x14febce40): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.876 (   6.284s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x14febce40): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+/Users/admin/Desktop/DATA/Uni/2026/Projects/golgi_revision/golgi/pipeline/plc.py:3151: PyVistaDeprecationWarning: This filter is deprecated. Use `select_interior_points` instead.
+  sel = probe.select_enclosed_points(
+2026-09-13 15:05:50.880 (   6.287s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x14febce40): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.882 (   6.290s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x14febce40): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.885 (   6.292s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x14febce40): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.887 (   6.295s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x14febce40): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+[mesh]   bundle seeds: 5 fascicle endo + epi
+[mesh]   nerve cross-section @ z=0: centroid=(-0.00, -0.00) mm, r_max=1.06 mm
+[mesh]   seeds: endo=[0.00014373683522144948, -0.0005244352154930434, 0.0], sal=[0.0012928396073387531, -7.149353315487964e-11, 0.0], sil=[0.002026791045180806, 0.0, 0.0], mus=[0.004513395522590409, 2.9774256803447162e-18, 0.0]
+[mesh]   PLC: 13,441 pts, 27,172 tris
+[mesh]   [mesher] gmsh OCC (conformal multi-domain)
+2026-09-13 15:05:50.921 (   6.328s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x14febce40): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.924 (   6.331s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x13f0f25c0): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.926 (   6.333s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x13f0e8f20): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.928 (   6.335s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x13f0f25c0): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.930 (   6.337s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x13f0bb610): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+2026-09-13 15:05:50.932 (   6.339s) [          20CFD8]          vtkmSlice.cxx:328   WARN| vtkmSlice (0x13f0bb610): Viskores failed with message: Input dataset not supported by vtkmSlice.
+Falling back to the default VTK implementation.
+[mesh]   [gmsh] 5 fascicle contours (of 5 supplied)
+[mesh]   [gmsh] nerve r_max=1.013 mm, R_ci=1.53, R_co=2.53, R_mus=9.01 mm; nerve z=[-10.0,10.0], cuff ±2.7
+[mesh]   [gmsh] fragment → 21 conformal sub-volumes
+[mesh]   [gmsh] MESHED: 218,067 nodes, 1,200,670 tets; region tet counts {1: 36862, 2: 7383, 3: 13673, 4: 1096588, 5: 46164}
+[mesh]   computing tet quality …
+[mesh]   q_tet min=0.000 median=0.517 mean=0.506
+[mesh]   extracting per-region surfaces (vtkGeometryFilter)…
+[mesh]     tag 1: 36,862 tets → 18,452 boundary tris
+[mesh]     tag 2: 7,383 tets → 3,502 boundary tris
+[mesh]     tag 3: 13,673 tets → 4,686 boundary tris
+[mesh]     tag 4: 1,096,588 tets → 75,746 boundary tris
+[mesh]     tag 5: 46,164 tets → 24,744 boundary tris
+[mesh]   5 region surface(s) ready
+[mesh]   ✓ wrote /Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/designs/elec_01/nerve.msh
+[study] meshed in 158s
+[fibers] # µCT-bundle path: 5 fascicle(s) → per-fascicle surface write + manifest
+[fibers] # fasc 0: wrote fascicle_0_surface.npz (1,700 pts, 3,396 tris)
+[fibers] # fasc 1: wrote fascicle_1_surface.npz (476 pts, 948 tris)
+[fibers] # fasc 2: wrote fascicle_2_surface.npz (612 pts, 1,220 tris)
+[fibers] # fasc 3: wrote fascicle_3_surface.npz (1,632 pts, 3,260 tris)
+[fibers] # fasc 4: wrote fascicle_4_surface.npz (612 pts, 1,220 tris)
+[fibers] # fascicle_manifest.json written (5 fascicles)
+[fibers] # launching solve_fiber_paths_nerve.py (nerve-only path)
+[fibers] # FIBER_OUT_DIR = /Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200
+[fibers] # seed cfg: FiberSeedConfig(n_seeds=200, seed_end='low', step_um=200.0, max_steps=10000, cluster_eps_m=0.002, cap_band_frac=0.15, min_rel_size=0.003, axial_normal_thresh=0.7)
+[fibers] [Max-Power-3][[40963,0],0][btl_tcp_component.c:1021:mca_btl_tcp_component_create_listen] bind() failed: Operation not permitted (1)
+[fibers] per-fascicle solver: cap detection eps=2.00 mm, z-band=15.0%, |n_z|>0.70; step=200 µm, max_steps=10000
+[fibers] manifest: 5 fascicle(s), target lc = 200 µm
+[fibers]   fascicle 0: surface cap area est. = 0.208 mm² (1,700 pts, 3,396 tris)
+[fibers]   fascicle 1: surface cap area est. = 0.005 mm² (476 pts, 948 tris)
+[fibers]   fascicle 2: surface cap area est. = 0.034 mm² (612 pts, 1,220 tris)
+[fibers]   fascicle 3: surface cap area est. = 0.746 mm² (1,632 pts, 3,260 tris)
+[fibers]   fascicle 4: surface cap area est. = 0.038 mm² (612 pts, 1,220 tris)
+[fibers]   proportional seed split (by surface cap area): [40, 1, 6, 145, 7] (total=199, requested=200)
+[fibers] 
+[fibers] === fascicle 1/5 (manifest idx=0, seeds=40) ===
+[fibers]   [fasc 0] meshing surface (1,700 pts / 3,396 tris) ...
+[fibers]     PLC: 1,700 pts / 3,396 tris
+[fibers]     target lc = 200 µm  →  max tet volume = 9.428e-13 m³
+[fibers]     running TetGen on fascicle surface (single domain) ...
+[fibers]   Initializing memorypools.
+[fibers]   tetrahedron per block: 8188.
+[fibers]   Size of a point: 152 bytes.
+[fibers]   Size of a tetrahedron: 96 (96) bytes.
+[fibers]   Size of a shellface: 200 (200) bytes.
+[fibers]   Initializing robust predicates.
+[fibers]   sizeof(double) =  8
+[fibers]   machine epsilon =   2.22045e-16 [IEEE 754 64-bit macheps]
+[fibers]   Permuting vertices.
+[fibers]   Sorting vertices.
+[fibers]   Incrementally inserting vertices.
+[fibers]   3396 (1725) subfaces (segments).
+[fibers]   Creating the segment-endpoints map.
+[fibers]   Found 1725 segments.
+[fibers]   Recovering segments.
+[fibers]   1725 (0) segments are recovered (missing).
+[fibers]   Recovering facets.
+[fibers]   3396 (0) subfaces are recovered (missing).
+[fibers]   Min radius-edge ratio = 2.
+[fibers]   Creating the segment_info_list.
+[fibers]   min_dihedral angle = 47.1399 degree, at segment [660,635]
+[fibers]   min face angle = 47.1399 degree, at vertex 10
+[fibers]   Creating the facet vertices map.
+[fibers]   Found 27 facets. Max facet idx(2), size(136)
+[fibers]   Creating the segment-to-facets map.
+[fibers]   Splitting encroached subsegments.
+[fibers]   Added 0 Steiner points.
+[fibers]   Splitting encroached and bad quality subfaces.
+[fibers]   Added 2836 (2718,118) Steiner points.
+[fibers]   Splitting bad quality tets.
+[fibers]   Added 2178 (1202,310,666) Steiner points.
+[fibers]   Smooth criterion   = 1
+[fibers]   Smooth iterations  = 7
+[fibers]   Smooth relax-alpha = 0.3
+[fibers]   Target maximum aspect ratio = 1000.
+[fibers]   Target maximum dihedral angle = 177.
+[fibers]   Maximum flip level   = 3.
+[fibers]   Number of iterations = 3.
+[fibers]   Removed 6 edges/faces.
+[fibers]     TetGen done: 6,714 pts, 20,846 tets
+[fibers]     wrote _fasc_tmp.msh; loading into dolfinx ...
+[fibers] Info    : Reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'...
+[fibers] Info    : 6714 nodes
+[fibers] Info    : 20846 elements
+[fibers] Info    : Done reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'
+[fibers]   [fasc 0] tet mesh: 20,846 cells, 6,714 points
+[fibers]   [fasc 0] cap facets: 35 low-z, 33 high-z
+[fibers]   [fasc 0] caps after filtering: low-z=1, high-z=1
+[fibers]   [fasc 0] cap areas (mm²): trunk=0.21, drains=['0.21']
+[fibers]   [fasc 0] solving Laplace ...
+[fibers]   [fasc 0] L2-projecting E = -∇φ ...
+[fibers]   [fasc 0] 31 seed vertices (requested 40)
+[fibers]   [fasc 0] building bb_tree ...
+[fibers]   [fasc 0] integrating 31 streamlines, step=200 µm, max_steps=10000
+[fibers]   [fasc 0] produced 31 paths
+[fibers] 
+[fibers] === fascicle 2/5 (manifest idx=1, seeds=1) ===
+[fibers]   [fasc 1] meshing surface (476 pts / 948 tris) ...
+[fibers]     PLC: 476 pts / 948 tris
+[fibers]     target lc = 200 µm  →  max tet volume = 9.428e-13 m³
+[fibers]     running TetGen on fascicle surface (single domain) ...
+[fibers]   Initializing memorypools.
+[fibers]   tetrahedron per block: 8188.
+[fibers]   Size of a point: 152 bytes.
+[fibers]   Size of a tetrahedron: 96 (96) bytes.
+[fibers]   Size of a shellface: 200 (200) bytes.
+[fibers]   Initializing robust predicates.
+[fibers]   sizeof(double) =  8
+[fibers]   machine epsilon =   2.22045e-16 [IEEE 754 64-bit macheps]
+[fibers]   Permuting vertices.
+[fibers]   Sorting vertices.
+[fibers]   Incrementally inserting vertices.
+[fibers]   948 (483) subfaces (segments).
+[fibers]   Creating the segment-endpoints map.
+[fibers]   Found 483 segments.
+[fibers]   Recovering segments.
+[fibers]   483 (0) segments are recovered (missing).
+[fibers]   Recovering facets.
+[fibers]   948 (0) subfaces are recovered (missing).
+[fibers]   Min radius-edge ratio = 2.
+[fibers]   Creating the segment_info_list.
+[fibers]   min_dihedral angle = 90 degree, at segment [473,472]
+[fibers]   min face angle = 90 degree, at vertex 6
+[fibers]   Creating the facet vertices map.
+[fibers]   Found 9 facets. Max facet idx(2), size(136)
+[fibers]   Creating the segment-to-facets map.
+[fibers]   Splitting encroached subsegments.
+[fibers]   Added 0 Steiner points.
+[fibers]   Splitting encroached and bad quality subfaces.
+[fibers]   Added 1407 (1407,0) Steiner points.
+[fibers]   Splitting bad quality tets.
+[fibers]   Added 0 (0,0,0) Steiner points.
+[fibers]   Target maximum aspect ratio = 1000.
+[fibers]   Target maximum dihedral angle = 177.
+[fibers]   Maximum flip level   = 3.
+[fibers]   Number of iterations = 3.
+[fibers]     TetGen done: 1,883 pts, 4,020 tets
+[fibers]     wrote _fasc_tmp.msh; loading into dolfinx ...
+[fibers] Info    : Reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'...
+[fibers] Info    : 1883 nodes
+[fibers] Info    : 4020 elements
+[fibers] Info    : Done reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'
+[fibers]   [fasc 1] tet mesh: 4,020 cells, 1,883 points
+[fibers]   [fasc 1] cap facets: 5 low-z, 5 high-z
+[fibers]   [fasc 1] caps after filtering: low-z=1, high-z=1
+[fibers]   [fasc 1] cap areas (mm²): trunk=0.01, drains=['0.01']
+[fibers]   [fasc 1] solving Laplace ...
+[fibers]   [fasc 1] L2-projecting E = -∇φ ...
+[fibers]   [fasc 1] 1 seed vertices (requested 1)
+[fibers]   [fasc 1] building bb_tree ...
+[fibers]   [fasc 1] integrating 1 streamlines, step=200 µm, max_steps=10000
+[fibers]   [fasc 1] produced 1 paths
+[fibers] 
+[fibers] === fascicle 3/5 (manifest idx=2, seeds=6) ===
+[fibers]   [fasc 2] meshing surface (612 pts / 1,220 tris) ...
+[fibers]     PLC: 612 pts / 1,220 tris
+[fibers]     target lc = 200 µm  →  max tet volume = 9.428e-13 m³
+[fibers]     running TetGen on fascicle surface (single domain) ...
+[fibers]   Initializing memorypools.
+[fibers]   tetrahedron per block: 8188.
+[fibers]   Size of a point: 152 bytes.
+[fibers]   Size of a tetrahedron: 96 (96) bytes.
+[fibers]   Size of a shellface: 200 (200) bytes.
+[fibers]   Initializing robust predicates.
+[fibers]   sizeof(double) =  8
+[fibers]   machine epsilon =   2.22045e-16 [IEEE 754 64-bit macheps]
+[fibers]   Permuting vertices.
+[fibers]   Sorting vertices.
+[fibers]   Incrementally inserting vertices.
+[fibers]   1220 (621) subfaces (segments).
+[fibers]   Creating the segment-endpoints map.
+[fibers]   Found 621 segments.
+[fibers]   Recovering segments.
+[fibers]   621 (0) segments are recovered (missing).
+[fibers]   Recovering facets.
+[fibers]   1220 (0) subfaces are recovered (missing).
+[fibers]   Min radius-edge ratio = 2.
+[fibers]   Creating the segment_info_list.
+[fibers]   min_dihedral angle = 90 degree, at segment [608,607]
+[fibers]   min face angle = 90 degree, at vertex 8
+[fibers]   Creating the facet vertices map.
+[fibers]   Found 11 facets. Max facet idx(2), size(136)
+[fibers]   Creating the segment-to-facets map.
+[fibers]   Splitting encroached subsegments.
+[fibers]   Added 0 Steiner points.
+[fibers]   Splitting encroached and bad quality subfaces.
+[fibers]   Added 846 (846,0) Steiner points.
+[fibers]   Splitting bad quality tets.
+[fibers]   Added 159 (159,0,0) Steiner points.
+[fibers]   Target maximum aspect ratio = 1000.
+[fibers]   Target maximum dihedral angle = 177.
+[fibers]   Maximum flip level   = 3.
+[fibers]   Number of iterations = 3.
+[fibers]     TetGen done: 1,617 pts, 4,020 tets
+[fibers]     wrote _fasc_tmp.msh; loading into dolfinx ...
+[fibers] Info    : Reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'...
+[fibers] Info    : 1617 nodes
+[fibers] Info    : 4020 elements
+[fibers] Info    : Done reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'
+[fibers]   [fasc 2] tet mesh: 4,020 cells, 1,617 points
+[fibers]   [fasc 2] cap facets: 7 low-z, 7 high-z
+[fibers]   [fasc 2] caps after filtering: low-z=1, high-z=1
+[fibers]   [fasc 2] cap areas (mm²): trunk=0.03, drains=['0.03']
+[fibers]   [fasc 2] solving Laplace ...
+[fibers]   [fasc 2] L2-projecting E = -∇φ ...
+[fibers]   [fasc 2] 6 seed vertices (requested 6)
+[fibers]   [fasc 2] building bb_tree ...
+[fibers]   [fasc 2] integrating 6 streamlines, step=200 µm, max_steps=10000
+[fibers]   [fasc 2] produced 6 paths
+[fibers] 
+[fibers] === fascicle 4/5 (manifest idx=3, seeds=145) ===
+[fibers]   [fasc 3] meshing surface (1,632 pts / 3,260 tris) ...
+[fibers]     PLC: 1,632 pts / 3,260 tris
+[fibers]     target lc = 200 µm  →  max tet volume = 9.428e-13 m³
+[fibers]     running TetGen on fascicle surface (single domain) ...
+[fibers]   Initializing memorypools.
+[fibers]   tetrahedron per block: 8188.
+[fibers]   Size of a point: 152 bytes.
+[fibers]   Size of a tetrahedron: 96 (96) bytes.
+[fibers]   Size of a shellface: 200 (200) bytes.
+[fibers]   Initializing robust predicates.
+[fibers]   sizeof(double) =  8
+[fibers]   machine epsilon =   2.22045e-16 [IEEE 754 64-bit macheps]
+[fibers]   Permuting vertices.
+[fibers]   Sorting vertices.
+[fibers]   Incrementally inserting vertices.
+[fibers]   3260 (1656) subfaces (segments).
+[fibers]   Creating the segment-endpoints map.
+[fibers]   Found 1656 segments.
+[fibers]   Recovering segments.
+[fibers]   1656 (0) segments are recovered (missing).
+[fibers]   Recovering facets.
+[fibers]   3260 (0) subfaces are recovered (missing).
+[fibers]   Min radius-edge ratio = 2.
+[fibers]   Creating the segment_info_list.
+[fibers]   min_dihedral angle = 90 degree, at segment [1631,1630]
+[fibers]   min face angle = 90 degree, at vertex 0
+[fibers]   Creating the facet vertices map.
+[fibers]   Found 26 facets. Max facet idx(2), size(136)
+[fibers]   Creating the segment-to-facets map.
+[fibers]   Splitting encroached subsegments.
+[fibers]   Added 0 Steiner points.
+[fibers]   Splitting encroached and bad quality subfaces.
+[fibers]   Added 695 (687,8) Steiner points.
+[fibers]   Splitting bad quality tets.
+[fibers]   Added 884 (338,4,542) Steiner points.
+[fibers]   Smooth criterion   = 1
+[fibers]   Smooth iterations  = 7
+[fibers]   Smooth relax-alpha = 0.3
+[fibers]   Target maximum aspect ratio = 1000.
+[fibers]   Target maximum dihedral angle = 177.
+[fibers]   Maximum flip level   = 3.
+[fibers]   Number of iterations = 3.
+[fibers]     TetGen done: 3,211 pts, 10,541 tets
+[fibers]     wrote _fasc_tmp.msh; loading into dolfinx ...
+[fibers] Info    : Reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'...
+[fibers] Info    : 3211 nodes
+[fibers] Info    : 10541 elements
+[fibers] Info    : Done reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'
+[fibers]   [fasc 3] tet mesh: 10,541 cells, 3,211 points
+[fibers]   [fasc 3] cap facets: 32 low-z, 36 high-z
+[fibers]   [fasc 3] caps after filtering: low-z=1, high-z=1
+[fibers]   [fasc 3] cap areas (mm²): trunk=0.75, drains=['0.75']
+[fibers]   [fasc 3] solving Laplace ...
+[fibers]   [fasc 3] L2-projecting E = -∇φ ...
+[fibers]   [fasc 3] 29 seed vertices (requested 145)
+[fibers]   [fasc 3] building bb_tree ...
+[fibers]   [fasc 3] integrating 29 streamlines, step=200 µm, max_steps=10000
+[fibers]   [fasc 3] produced 29 paths
+[fibers] 
+[fibers] === fascicle 5/5 (manifest idx=4, seeds=7) ===
+[fibers]   [fasc 4] meshing surface (612 pts / 1,220 tris) ...
+[fibers]     PLC: 612 pts / 1,220 tris
+[fibers]     target lc = 200 µm  →  max tet volume = 9.428e-13 m³
+[fibers]     running TetGen on fascicle surface (single domain) ...
+[fibers]   Initializing memorypools.
+[fibers]   tetrahedron per block: 8188.
+[fibers]   Size of a point: 152 bytes.
+[fibers]   Size of a tetrahedron: 96 (96) bytes.
+[fibers]   Size of a shellface: 200 (200) bytes.
+[fibers]   Initializing robust predicates.
+[fibers]   sizeof(double) =  8
+[fibers]   machine epsilon =   2.22045e-16 [IEEE 754 64-bit macheps]
+[fibers]   Permuting vertices.
+[fibers]   Sorting vertices.
+[fibers]   Incrementally inserting vertices.
+[fibers]   1220 (621) subfaces (segments).
+[fibers]   Creating the segment-endpoints map.
+[fibers]   Found 621 segments.
+[fibers]   Recovering segments.
+[fibers]   621 (0) segments are recovered (missing).
+[fibers]   Recovering facets.
+[fibers]   1220 (0) subfaces are recovered (missing).
+[fibers]   Min radius-edge ratio = 2.
+[fibers]   Creating the segment_info_list.
+[fibers]   min_dihedral angle = 90 degree, at segment [0,1]
+[fibers]   min face angle = 90 degree, at vertex 8
+[fibers]   Creating the facet vertices map.
+[fibers]   Found 11 facets. Max facet idx(2), size(136)
+[fibers]   Creating the segment-to-facets map.
+[fibers]   Splitting encroached subsegments.
+[fibers]   Added 0 Steiner points.
+[fibers]   Splitting encroached and bad quality subfaces.
+[fibers]   Added 960 (960,0) Steiner points.
+[fibers]   Splitting bad quality tets.
+[fibers]   Added 45 (45,0,0) Steiner points.
+[fibers]   Target maximum aspect ratio = 1000.
+[fibers]   Target maximum dihedral angle = 177.
+[fibers]   Maximum flip level   = 3.
+[fibers]   Number of iterations = 3.
+[fibers]     TetGen done: 1,617 pts, 3,752 tets
+[fibers]     wrote _fasc_tmp.msh; loading into dolfinx ...
+[fibers] Info    : Reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'...
+[fibers] Info    : 1617 nodes
+[fibers] Info    : 3752 elements
+[fibers] Info    : Done reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/_fasc_tmp.msh'
+[fibers]   [fasc 4] tet mesh: 3,752 cells, 1,617 points
+[fibers]   [fasc 4] cap facets: 7 low-z, 7 high-z
+[fibers]   [fasc 4] caps after filtering: low-z=1, high-z=1
+[fibers]   [fasc 4] cap areas (mm²): trunk=0.04, drains=['0.04']
+[fibers]   [fasc 4] solving Laplace ...
+[fibers]   [fasc 4] L2-projecting E = -∇φ ...
+[fibers]   [fasc 4] 7 seed vertices (requested 7)
+[fibers]   [fasc 4] building bb_tree ...
+[fibers]   [fasc 4] integrating 7 streamlines, step=200 µm, max_steps=10000
+[fibers]   [fasc 4] produced 7 paths
+[fibers] 
+[fibers] wrote 74 paths from 5/5 fascicles (7,474 total pts)
+[fibers] wrote nerve_paths_caps.json
+[fibers] done
+[fibers] # 74 fiber paths, 7,474 total pts
+[fibers] # bundle: using per-path branch_idx from solver (5 fascicle(s))
+[fem] # [1/1] config 'cfg_01' (Default) on design '12-contact cuff': 12 patches → /Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/configs/cfg_01
+[fem] # launching solve_nerve.py (SOLVE_OUT_DIR=/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/configs/cfg_01, SOLVE_SHARED_DIR=/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/designs/elec_01)
+[fem] [Max-Power-3][[10448,0],0][btl_tcp_component.c:1021:mca_btl_tcp_component_create_listen] bind() failed: Operation not permitted (1)
+[fem] [golgi] IT'IS tissue database not found — using the Custom Cole-Cole preset only. Fetch it with `python -m golgi.conductivity.fetch_itis` (downloads V4-1 from IT'IS), or install it manually (see resources/tissue_db/README.md).
+[fem] Running FENiCSx solver on 1 MPI processes.
+[fem] Info    : Reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/designs/elec_01/nerve.msh'...
+[fem] Info    : 218067 nodes
+[fem] Info    : [  0%] Reading nodes
+[fem] Info    : [ 10%] Reading nodes
+[fem] Info    : [ 20%] Reading nodes
+[fem] Info    : [ 30%] Reading nodes
+[fem] Info    : [ 40%] Reading nodes
+[fem] Info    : [ 50%] Reading nodes
+[fem] Info    : [ 60%] Reading nodes
+[fem] Info    : [ 70%] Reading nodes
+[fem] Info    : [ 80%] Reading nodes
+[fem] Info    : [ 90%] Reading nodes
+[fem] 
+[fem] Info    : 1200670 elements
+[fem] Info    : [  0%] Reading elements
+[fem] Info    : [ 10%] Reading elements
+[fem] Info    : [ 20%] Reading elements
+[fem] Info    : [ 30%] Reading elements
+[fem] Info    : [ 40%] Reading elements
+[fem] Info    : [ 50%] Reading elements
+[fem] Info    : [ 60%] Reading elements
+[fem] Info    : [ 70%] Reading elements
+[fem] Info    : [ 80%] Reading elements
+[fem] Info    : [ 90%] Reading elements
+[fem] 
+[fem] Info    : Done reading '/Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/designs/elec_01/nerve.msh'
+[fem] # … still solving (8s)
+[fem] piecewise σ from cell tags:
+[fem]   tag=1  σ_T=0.166667 S/m, σ_L=0.571429  (36862 cells)
+[fem]   tag=2  σ_T=1.76 S/m  (7383 cells)
+[fem]   tag=3  σ_T=1e-12 S/m  (13673 cells)
+[fem]   tag=4  σ_T=0.086 S/m, σ_L=0.35  (1096588 cells)
+[fem]   tag=5  σ_T=0.15873 S/m  (46164 cells)
+[fem] loaded electrode config from /Users/admin/.claude-science/orgs/9bd3952b-8e07-49f7-9ed0-094f660eb9e5/workspaces/ad0446f1-de1f-4e9c-a80d-ec0f08bdebfe/r22_sweep/projects/none_c050_n200/configs/cfg_01/electrode_config.json: ring-array (NxM)
+[fem]   found 1,510 interior facets at the saline-wall interface (silicone/contact) — the cuff inner wall, where contacts sit in a multi-domain mesh
+[fem] 
+[fem] 12 electrode patches:
+[fem]   id= 0 cathode  axial    area= 0.0000 mm² (0 facets)
+[fem]   id= 1 anode    axial    area= 0.0000 mm² (0 facets)
+[fem]   id= 2 cathode  axial    area= 0.0000 mm² (0 facets)
+[fem]   id= 3 anode    axial    area= 0.0000 mm² (0 facets)
+[fem]   id= 4 anode    axial    area= 2.1266 mm² (29 facets)
+[fem]   id= 5 cathode  axial    area= 1.8039 mm² (32 facets)
+[fem]   id= 6 anode    axial    area= 1.8780 mm² (24 facets)
+[fem]   id= 7 cathode  axial    area= 1.9032 mm² (27 facets)
+[fem]   id= 8 cathode  axial    area= 0.0000 mm² (0 facets)
+[fem]   id= 9 anode    axial    area= 0.0000 mm² (0 facets)
+[fem]   id=10 cathode  axial    area= 0.0000 mm² (0 facets)
+[fem]   id=11 anode    axial    area= 0.0000 mm² (0 facets)
+[fem]   WARN: active patch id=0 has zero area — skipped
+[fem]   WARN: active patch id=2 has zero area — skipped
+[fem]   WARN: active patch id=8 has zero area — skipped
+[fem]   WARN: active patch id=10 has zero area — skipped
+[fem] 
+[fem] solving with PETSc preset 'Balanced'; options: {'ksp_type': 'cg', 'pc_type': 'hypre', 'pc_hypre_type': 'boomeramg', 'ksp_rtol': 1e-10, 'ksp_view': None}
+[fem] KSP Object: (nerve_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (nerve_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (nerve_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem] # … still solving (16s)
+[fem] saved axis line (401 points)
+[fem] saved slice volume (41 z stations × 60² grid)
+[fem] sampling Ve directly at 7,474 trajectory points across 74 fibers …
+[fem] # … still solving (24s)
+[fem]   saved paths_Ve.npz (per-point Ve sampled directly from FEM function)
+[fem] sampling Ve at 9,236 nerve surface vertices …
+[fem]   saved nerve_surface_Ve.npz (9236 pts)
+[fem] 
+[fem] [impedance] computing per-contact Z via 12 Dirichlet dual-solves (ground = outer muscle bbox; 67,094 facets; current integrated at the ground boundary)
+[fem] KSP Object: (imp_4_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_4_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_4_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   contact id= 4: I=1490.573 µA  →  Z=670.9 Ω
+[fem] # … still solving (32s)
+[fem] KSP Object: (imp_5_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_5_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_5_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   contact id= 5: I=1471.789 µA  →  Z=679.4 Ω
+[fem] KSP Object: (imp_6_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_6_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_6_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   contact id= 6: I=1463.992 µA  →  Z=683.1 Ω
+[fem] # … still solving (40s)
+[fem] KSP Object: (imp_7_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_7_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_7_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   contact id= 7: I=1472.756 µA  →  Z=679.0 Ω
+[fem] KSP Object: (imp_pair_4_5_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_pair_4_5_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_pair_4_5_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   pair anode= 4 cathode= 5: I=925.177 µA  →  Z=1080.9 Ω
+[fem] # … still solving (48s)
+[fem] KSP Object: (imp_pair_4_7_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_pair_4_7_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_pair_4_7_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   pair anode= 4 cathode= 7: I=919.541 µA  →  Z=1087.5 Ω
+[fem] # … still solving (56s)
+[fem] KSP Object: (imp_pair_6_5_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_pair_6_5_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_pair_6_5_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   pair anode= 6 cathode= 5: I=796.426 µA  →  Z=1255.6 Ω
+[fem] KSP Object: (imp_pair_6_7_) 1 MPI process
+[fem]   type: cg
+[fem]   maximum iterations=10000, initial guess is zero
+[fem]   tolerances: relative=1e-10, absolute=1e-50, divergence=10000.
+[fem]   left preconditioning
+[fem]   using PRECONDITIONED norm type for convergence test
+[fem] PC Object: (imp_pair_6_7_) 1 MPI process
+[fem]   type: hypre
+[fem]     HYPRE BoomerAMG preconditioning
+[fem]       Cycle type V
+[fem]       Maximum number of levels 25
+[fem]       Maximum number of iterations PER hypre call 1
+[fem]       Convergence tolerance PER hypre call 0.
+[fem]       Threshold for strong coupling 0.25
+[fem]       Interpolation truncation factor 0.
+[fem]       Interpolation: max elements per row 0
+[fem]       Number of levels of aggressive coarsening 0
+[fem]       Number of paths for aggressive coarsening 1
+[fem]       Maximum row sums 0.9
+[fem]       Sweeps down         1
+[fem]       Sweeps up           1
+[fem]       Sweeps on coarse    1
+[fem]       Relax down          symmetric-SOR/Jacobi
+[fem]       Relax up            symmetric-SOR/Jacobi
+[fem]       Relax on coarse     Gaussian-elimination
+[fem]       Relax weight  (all)      1.
+[fem]       Outer relax weight (all) 1.
+[fem]       Maximum size of coarsest grid 9
+[fem]       Minimum size of coarsest grid 1
+[fem]       Using CF-relaxation
+[fem]       Not using more complex smoothers.
+[fem]       Measure type        local
+[fem]       Coarsen type        Falgout
+[fem]       Interpolation type  classical
+[fem]       SpGEMM type         hypre
+[fem]   linear system matrix, which is also used to construct the preconditioner:
+[fem]   Mat Object: (imp_pair_6_7_A_) 1 MPI process
+[fem]     type: seqaij
+[fem]     rows=218067, cols=218067
+[fem]     total: nonzeros=3122633, allocated nonzeros=3122633
+[fem]     total number of mallocs used during MatSetValues calls=0
+[fem]       not using I-node routines
+[fem]   pair anode= 6 cathode= 7: I=823.691 µA  →  Z=1214.0 Ω
+[fem] saved impedance.json (12 contacts, 4 pairs)
+[fem] 
+[fem] Done. To visualize:  python plot_results.py  or  marimo edit notebook.py
+[fem] Or open results/Ve.xdmf and results/E.xdmf in ParaView.
+[fem]   ✓ config 'cfg_01' published to fem_configs (1 solved this batch, 1 total on disk)
+[fem] # wrote 1 config manifest(s); active = 'cfg_01' (on design 'elec_01')
+[fem] # loaded paths_Ve.npz (74 fibers, 7,474 pts; Ez present, paths_flat present)
+[fem] # loaded nerve_surface_Ve.npz (9,236 pts)
+[fem] # loaded axis_line.npz (401 pts) + slice_volume.npz (41 slices)
+[fem] # loaded impedance.json (12 contacts, 4 pairs)
+[study] fibers 5s, FEM 63s
+NEURON mechanisms not found in /Users/admin/.claude-science/conda/envs/golgi/lib/python3.12/site-packages/pyfibers/MOD.
+[none_c050_n200] deform=none clearance=0.5 R_bore=1.5267910451808062 activated=47/74 median=3424.6 uA | mesh=158s fem=63s sweep=469s
