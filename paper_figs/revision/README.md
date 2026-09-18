@@ -7,9 +7,10 @@ Scripts and data that reproduce the four supplementary figures added during revi
 
 Each script is standalone, writes its figure into the working directory, and reads
 its inputs from `data/` (override with `GOLGI_REV_DATA`). The large cross-solver
-inputs live in `data_large/` (override with `GOLGI_REV_DATA_LARGE`) and are
-distributed with the Zenodo record rather than this repository, because they total
-about 95 MB.
+inputs live in `data_large/` (override with `GOLGI_REV_DATA_LARGE`) and are not
+committed here, because they total about 95 MB. They are already archived in the
+golgi reproduction-bundles record on Zenodo:
+https://doi.org/10.5281/zenodo.21301726 (file `golgi_comsol_handover.tar.gz`, under `models/M2_idealized_cuff/` and `results/M2/`).
 
 | Script | Figure | What it shows |
 | --- | --- | --- |
@@ -73,7 +74,7 @@ contact array, 1.0 mm silicone wall, 8 mm radial and 10 mm axial muscle pads.
 - `stl/nerve_{undeformed,rounded}.stl` — extruded nerve surfaces
 - `r22_sweep_summary.json` — every statistic quoted in the S19 caption, including the power-law fit
 
-`data_large/` (Zenodo record only)
+`data_large/` — not in this repository; obtain from https://doi.org/10.5281/zenodo.21301726 (file `golgi_comsol_handover.tar.gz`, under `models/M2_idealized_cuff/` and `results/M2/`)
 
 - `eval_points.csv` — shared evaluation grid for the cross-solver comparison
 - `golgi_Ve_VperA.csv` — golgi extracellular potentials at those points
