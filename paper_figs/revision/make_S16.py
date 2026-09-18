@@ -6,8 +6,9 @@ field to activation thresholds (M2 idealized cuff).
 
 Usage:  python make_S16.py
 Data is read from ./data (override with GOLGI_REV_DATA); the large cross-solver
-inputs are read from ./data_large (override with GOLGI_REV_DATA_LARGE) and are
-distributed with the Zenodo record rather than the git repository.
+inputs are read from ./data_large (override with GOLGI_REV_DATA_LARGE). Those are
+not in the repository; they are archived in the golgi reproduction-bundles record,
+doi:10.5281/zenodo.21301726, inside golgi_comsol_handover.tar.gz.
 """
 import os
 
